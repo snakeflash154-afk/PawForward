@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawForward | Donate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+<header>
+    <div class="header-container">
+
+        <div class="header-left">
+            <h1>PawForward</h1>
+            <p>Helping Animals, One Paw at a Time</p>
+        </div>
+
+        <div class="header-center">
+            <img src="images/logo.png" alt="PawForward Logo">
+        </div>
+
+        <div class="header-right">
+            <a href="cart.html" class="header-button">Cart</a>
+
+            <button type="button" class="header-button" id="openPopup">
+                Sign In
+            </button>
+
+            <img src="images/user.png" alt="Profile"
+                 class="profile-picture">
+        </div>
+
+    </div>
+
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li>|</li>
+            <li><a href="about.html">About Us</a></li>
+            <li>|</li>
+            <li><a href="adopt.html">Adopt</a></li>
+            <li>|</li>
+            <li><a href="donate.html">Donate</a></li>
+            <li>|</li>
+            <li><a href="shop.html">Shop</a></li>
+            <li>|</li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+    </nav>
+</header>
+<section class="container">
+    <h2>Donate</h2>
+    <p class="subtitle">Help us reach our next Milestone</p>
+    <div class="donate-box">
+        <p class="raised" id="raisedAmount"></p>
+        <p class="goal-text">raised of our<strong class="goalAmount"></strong> goal</p>
+
+        <div class="progress">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-marks">
+            <span>$0</span>
+            <span id="midMark"></span>
+            <span id="endMark"></span>
+        </div>
+
+        <div class="donate-amounts">
+            <a href="#" class="btn btn-outline">$10</a>
+            <a href="#" class="btn btn-outline">$25</a>
+            <a href="#" class="btn btn-outline">$50</a>
+            <a href="#" class="btn btn-outline">$100</a>
+        </div>
+        <div class="custom-amount">
+            <label for="customAmount">Or enter any amount</label>
+            <div class="amount-input">
+                <span>$</span>
+                <input type="number" id="customAmount" min="1" placeholder="Enter Amount">
+            </div>
+        </div>
+
+        <button type="button" class="btn donate-now" id="donateBtn">Donate Now</button>
+    </div>
+</section>
+    <iframe 
+        src="popup/account-popup.html"
+        id="popFrame"
+        class="popup-frame">
+    </iframe>
+    <div id="footer-placeholder"></div>
+    <script src="script.js"></script>
+    <script>
+    const goal = 5000;
+    let raised = 3250;
+
+    function addDonation(amount) {
+        raised += amount;
+
+        const percent = Math.min((raised / goal) * 100, 100);
+
+        document.getElementById("raisedAmount").textContent = "$" + raised.toLocaleString("en-US");
+        document.getElementById("goalAmount").textContent   = "$" + goal.toLocaleString("en-US");
+        document.getElementById("midMark").textContent      = "$" + (goal / 2).toLocaleString("en-US");
+        document.getElementById("endMark").textContent      = "$" + goal.toLocaleString("en-US");
+        document.getElementById("progressFill").style.width = percent + "%";
+    }
+
+    // $10, $25, $50, $100 buttons add straight to the bar
+    document.querySelectorAll("[data-amount]").forEach(function (button) {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+            addDonation(Number(button.dataset.amount));
+        });
+    });
+
+    // Donate Now adds whatever is typed in the box
+    document.getElementById("donateBtn").addEventListener("click", function () {
+        const input = document.getElementById("customAmount");
+        const amount = parseFloat(input.value);
+
+        if (amount > 0) {
+            addDonation(amount);
+            input.value = "";
+        }
+    });
+
+    addDonation(0); // show the starting numbers
+</script>
+</body>
+</html>

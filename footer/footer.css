@@ -1,0 +1,58 @@
+
+/* Main footer */
+.site-footer {
+    background-color: #292323;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    padding: 35px 40px 15px;
+    box-sizing: border-box;
+}
+
+/* Main footer content */
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* PawForward name and tagline */
+.footer-info h2 {
+    font-size: 24px;
+    margin: 0 0 8px;
+}
+
+.footer-info p {
+    font-size: 14px;
+    color: #cccccc;
+    margin: 0;
+}
+
+/* Contact information */
+.footer-contact h3 {
+    font-size: 16px;
+    margin: 0 0 10px;
+}
+
+.footer-contact p {
+    font-size: 13px;
+    color: #cccccc;
+    margin: 5px 0;
+}
+
+/* Copyright section */
+.footer-bottom {
+    max-width: 1200px;
+    margin: 25px auto 0;
+    padding-top: 12px;
+    border-top: 1px solid #514747;
+    text-align: center;
+}
+
+.footer-bottom p {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin: 0;
+}

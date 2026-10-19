@@ -1,0 +1,100 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.popup-overlay {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+}
+
+.popup-container {
+    background-color: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 35px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+
+    transition: height 0.35s ease, transform 0.35s ease;
+    overflow: hidden;
+}
+
+.close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    border: none;
+    background: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #555;
+}
+
+.popup-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.popup-container p {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.popup-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.popup-container label {
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.popup-container input {
+    padding: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.popup-container form button {
+    padding: 12px;
+    background-color: rgb(182, 55, 55);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.popup-container form button:hover {
+    background-color: rgb(145, 40, 40);
+}
+
+.popup-container a {
+    color: rgb(182, 55, 55);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.popup-container a:hover {
+    text-decoration: underline;
+}
+
+#signInForm + p, #signUpSection form + p {
+    transform: translateY(10px);
+}

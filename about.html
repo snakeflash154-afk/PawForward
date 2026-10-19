@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawForward | About Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+<header>
+    <div class="header-container">
+
+        <div class="header-left">
+            <h1>PawForward</h1>
+            <p>Helping Animals, One Paw at a Time</p>
+        </div>
+
+        <div class="header-center">
+            <img src="images/logo.png" alt="PawForward Logo">
+        </div>
+
+        <div class="header-right">
+            <a href="cart.html" class="header-button">Cart</a>
+
+            <button type="button" class="header-button" id="openPopup">
+                Sign In
+            </button>
+
+            <img src="images/user.png" alt="Profile"
+                 class="profile-picture">
+        </div>
+
+    </div>
+
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li>|</li>
+            <li><a href="about.html">About Us</a></li>
+            <li>|</li>
+            <li><a href="adopt.html">Adopt</a></li>
+            <li>|</li>
+            <li><a href="donate.html">Donate</a></li>
+            <li>|</li>
+            <li><a href="shop.html">Shop</a></li>
+            <li>|</li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+    </nav>
+</header>
+    <iframe 
+        src="popup/account-popup.html"
+        id="popFrame"
+        class="popup-frame">
+    </iframe>
+    <div id="footer-placeholder"></div>
+    <script src="script.js"></script>
+</body>
+</html>
