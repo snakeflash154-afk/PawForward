@@ -1,88 +1,136 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<header>
+
+<header class="site-header" id="siteHeader">
     <div class="header-container">
+        <a href="index.html" class="brand">
+            <img src="images/logo.png" alt="PawForward logo">
+            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
+        </a>
 
-        <div class="header-left">
-            <h1>PawForward</h1>
-            <p>Helping Animals, One Paw at a Time</p>
-        </div>
-
-        <div class="header-center">
-            <img src="images/logo.png" alt="PawForward Logo">
-        </div>
+        <nav id="mainNav" aria-label="Main">
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="adopt.html">Adopt</a></li>
+                <li><a href="donate.html">Donate</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
 
         <div class="header-right">
             <a href="cart.html" class="header-button">Cart</a>
-
-            <button type="button" class="header-button" id="openPopup">
-                Sign In
-            </button>
-
-            <img src="images/user.png" alt="Profile"
-                 class="profile-picture">
+            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
+            <img src="images/user.png" alt="Profile" class="profile-picture">
+            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
         </div>
-
     </div>
-
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li>|</li>
-            <li><a href="about.html">About Us</a></li>
-            <li>|</li>
-            <li><a href="adopt.html">Adopt</a></li>
-            <li>|</li>
-            <li><a href="donate.html">Donate</a></li>
-            <li>|</li>
-            <li><a href="shop.html">Shop</a></li>
-            <li>|</li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-    </nav>
 </header>
-<section class="intro">
-    <div class="intro-image">
-        <img src="images/intro-dogs.jpg"
-            alt="Rescued dogs at PawForward">
-    </div>
-    <div class="intro-section">
-        <h2>Welcome to PawForward</h2>
-        <p>
-            Every animal deserves love, care, and a safe home.
-            Join us in making a difference through adoption,
-            donations, and compassionate care.
-        </p>
-    </div>
-</section>
-<section class="hero">
-    <div class="hero-content">
-        <h2>Give Every Paw a Brighter Future</h2>
-        <p>
-            Help animals find loving homes through
-            adoption, donations, and compassionate care.
-        </p>
-        <a href="adopt.html" class="hero-button">
-            Adopt a Pet
-        </a>
-    </div>
-</section>
-    <iframe 
-        src="popup/account-popup.html"
-        id="popFrame"
-        class="popup-frame">
-    </iframe>
-    <div id="footer-placeholder"></div>
-    <script src="script.js"></script>
+
+<main>
+    <section class="hero">
+        <div class="hero-bg" role="img" aria-label="Rescued dogs at PawForward"></div>
+        <div class="hero-content">
+            <h2>
+                <span class="line"><span>Give every</span></span>
+                <span class="line"><span>paw a brighter</span></span>
+                <span class="line"><span>future.</span></span>
+            </h2>
+            <p>Every stray deserves love, care, and a safe home. Adopt, donate, or volunteer and change one life today.</p>
+            <div class="hero-actions">
+                <a href="adopt.html" class="hero-button">Adopt a pet</a>
+                <a href="#donate" class="hero-button ghost">Donate now</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="container story">
+        <div class="story-img reveal">
+            <img src="images/intro-dogs.jpg" alt="Dogs resting together at the shelter" loading="lazy">
+        </div>
+        <div class="reveal">
+            <h2>Every animal deserves a safe home</h2>
+            <p>PawForward rescues stray dogs and cats, treats their injuries, and finds them families who will love them. Your support pays for food, vaccines, and shelter.</p>
+            <a href="about.html" class="btn">Read our story</a>
+        </div>
+    </section>
+
+    <section class="impact">
+        <div class="container impact-grid">
+            <div>
+                <div class="impact-num"><span data-count="1200">0</span>+</div>
+                <p>Strays rescued from the streets</p>
+            </div>
+            <div>
+                <div class="impact-num"><span data-count="850">0</span>+</div>
+                <p>Animals adopted into loving homes</p>
+            </div>
+            <div>
+                <div class="impact-num"><span data-count="3400">0</span>+</div>
+                <p>Vaccinations and vet treatments given</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <h2>Three ways to help today</h2>
+        <p class="subtitle">Pick what fits your day. Every action gets an animal closer to home.</p>
+        <div class="help-grid">
+            <a href="adopt.html" class="help-card reveal">
+                <img src="images/help-adopt.jpg" alt="" loading="lazy">
+                <h3>Adopt</h3>
+                <p>Meet the dogs and cats waiting for a family and start your adoption.</p>
+            </a>
+            <a href="donate.html" class="help-card reveal">
+                <img src="images/help-donate.jpg" alt="" loading="lazy">
+                <h3>Donate</h3>
+                <p>Cover food, vaccines, and vet care for animals in our shelter.</p>
+            </a>
+            <a href="contact.html" class="help-card reveal">
+                <img src="images/help-volunteer.jpg" alt="" loading="lazy">
+                <h3>Volunteer</h3>
+                <p>Walk dogs, foster a pup, or help at our next rescue event.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="donate-section container" id="donate" style="max-width:none">
+        <div class="donate-box reveal">
+            <h2>Defend strays every day</h2>
+            <p class="goal-text">Every peso you give helps an animal off the street.</p>
+            <div class="progress" aria-label="Monthly goal progress">
+                <div class="progress-fill" id="progressFill" data-percent="68"></div>
+            </div>
+            <p class="goal-text" style="margin-top:8px;font-size:14px">68% of this month's goal reached</p>
+
+            <div class="donate-amounts" id="amounts">
+                <button type="button" class="amount-btn" data-amount="100">&#8369;100</button>
+                <button type="button" class="amount-btn selected" data-amount="250">&#8369;250</button>
+                <button type="button" class="amount-btn" data-amount="500">&#8369;500</button>
+                <button type="button" class="amount-btn" data-amount="1000">&#8369;1,000</button>
+            </div>
+            <div class="amount-input">
+                <span>&#8369;</span>
+                <input type="number" min="1" id="customAmount" placeholder="Other amount" aria-label="Custom donation amount">
+            </div>
+            <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
+            <a href="donate.html" class="donate-now" id="donateNow" style="display:inline-block;text-decoration:none">Donate now</a>
+        </div>
+    </section>
+</main>
+
+<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
+<div id="footer-placeholder"></div>
+<script src="script.js"></script>
 </body>
 </html>

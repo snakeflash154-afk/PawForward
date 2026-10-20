@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawForward | Your Cart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header" id="siteHeader">
+    <div class="header-container">
+        <a href="index.html" class="brand">
+            <img src="images/logo.png" alt="PawForward logo">
+            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
+        </a>
+        <nav id="mainNav" aria-label="Main">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="adopt.html">Adopt</a></li>
+                <li><a href="donate.html">Donate</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+        <div class="header-right">
+            <a href="cart.html" class="header-button">Cart</a>
+            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
+            <img src="images/user.png" alt="Profile" class="profile-picture">
+            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
+        </div>
+    </div>
+</header>
+
+<section class="page-banner">
+    <h1><span>Your cart</span></h1>
+    <p>Every purchase in our shop goes toward food and care for rescued animals.</p>
+</section>
+
+<section class="container">
+    <div class="cart-layout" id="cartLayout">
+        <div class="cart-list" id="cartList"></div>
+
+        <aside class="summary">
+            <h2>Order summary</h2>
+            <div class="summary-row"><span>Subtotal</span><span id="subtotal"></span></div>
+            <div class="summary-row"><span>Shipping</span><span id="shipping"></span></div>
+            <p class="summary-note" id="shipNote"></p>
+            <div class="summary-row total"><span>Total</span><span id="total"></span></div>
+            <button type="button" class="donate-now" id="checkoutBtn">Checkout</button>
+            <p class="thanks" id="checkoutNote" role="status"></p>
+            <p class="summary-note" style="margin-top:14px"><a href="shop.html" style="color:var(--red);font-weight:700">Continue shopping</a></p>
+        </aside>
+    </div>
+
+    <div class="cart-empty" id="cartEmpty" hidden>
+        <h2>Your cart is empty</h2>
+        <p>Find something for your pet and support our rescues at the same time.</p>
+        <a href="shop.html" class="btn">Browse the shop</a>
+    </div>
+</section>
+
+<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
+<div id="footer-placeholder"></div>
+<script src="script.js"></script>
+<script src="cart.js"></script>
+</body>
+</html>

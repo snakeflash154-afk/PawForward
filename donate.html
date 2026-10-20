@@ -4,128 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Donate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<header>
+ 
+<header class="site-header" id="siteHeader">
     <div class="header-container">
-
-        <div class="header-left">
-            <h1>PawForward</h1>
-            <p>Helping Animals, One Paw at a Time</p>
-        </div>
-
-        <div class="header-center">
-            <img src="images/logo.png" alt="PawForward Logo">
-        </div>
-
+        <a href="index.html" class="brand">
+            <img src="images/logo.png" alt="PawForward logo">
+            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
+        </a>
+        <nav id="mainNav" aria-label="Main">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="adopt.html">Adopt</a></li>
+                <li><a href="donate.html" class="active">Donate</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
         <div class="header-right">
             <a href="cart.html" class="header-button">Cart</a>
-
-            <button type="button" class="header-button" id="openPopup">
-                Sign In
-            </button>
-
-            <img src="images/user.png" alt="Profile"
-                 class="profile-picture">
+            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
+            <img src="images/user.png" alt="Profile" class="profile-picture">
+            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
         </div>
-
     </div>
-
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li>|</li>
-            <li><a href="about.html">About Us</a></li>
-            <li>|</li>
-            <li><a href="adopt.html">Adopt</a></li>
-            <li>|</li>
-            <li><a href="donate.html">Donate</a></li>
-            <li>|</li>
-            <li><a href="shop.html">Shop</a></li>
-            <li>|</li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-    </nav>
 </header>
+ 
+<section class="page-banner">
+    <h1><span>Donate</span></h1>
+    <p>Help us reach our next milestone and keep rescued animals fed, healthy, and safe.</p>
+</section>
+ 
 <section class="container">
-    <h2>Donate</h2>
-    <p class="subtitle">Help us reach our next Milestone</p>
-    <div class="donate-box">
-        <p class="raised" id="raisedAmount"></p>
-        <p class="goal-text">raised of our<strong class="goalAmount"></strong> goal</p>
-
-        <div class="progress">
+    <div class="donate-box card reveal">
+        <div class="raised-wrap">
+            <p class="raised" id="raisedAmount">0</p>
+            <p class="goal-text">raised of our <strong id="goalAmount"></strong> goal</p>
+        </div>
+ 
+        <div class="progress" role="progressbar" aria-label="Fundraising progress">
             <div class="progress-fill" id="progressFill"></div>
         </div>
         <div class="progress-marks">
-            <span>$0</span>
+            <span id="startMark"></span>
             <span id="midMark"></span>
             <span id="endMark"></span>
         </div>
-
-        <div class="donate-amounts">
-            <a href="#" class="btn btn-outline">$10</a>
-            <a href="#" class="btn btn-outline">$25</a>
-            <a href="#" class="btn btn-outline">$50</a>
-            <a href="#" class="btn btn-outline">$100</a>
+ 
+        <div class="donate-amounts" id="amounts">
+            <button type="button" class="amount-btn" data-amount="100"></button>
+            <button type="button" class="amount-btn selected" data-amount="250"></button>
+            <button type="button" class="amount-btn" data-amount="500"></button>
+            <button type="button" class="amount-btn" data-amount="1000"></button>
         </div>
+ 
         <div class="custom-amount">
-            <label for="customAmount">Or enter any amount</label>
+            <label for="customAmount" style="display:block;font-weight:700;margin-bottom:8px">Or enter any amount</label>
             <div class="amount-input">
-                <span>$</span>
-                <input type="number" id="customAmount" min="1" placeholder="Enter Amount">
+                <span class="cur"></span>
+                <input type="number" id="customAmount" min="1" placeholder="Enter amount">
             </div>
         </div>
-
-        <button type="button" class="btn donate-now" id="donateBtn">Donate Now</button>
+ 
+        <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
+        <button type="button" class="donate-now" id="donateBtn">Donate now</button>
+        <p class="thanks" id="thanks" role="status"></p>
     </div>
 </section>
-    <iframe 
-        src="popup/account-popup.html"
-        id="popFrame"
-        class="popup-frame">
-    </iframe>
-    <div id="footer-placeholder"></div>
-    <script src="script.js"></script>
-    <script>
-    const goal = 5000;
-    let raised = 3250;
-
-    function addDonation(amount) {
-        raised += amount;
-
-        const percent = Math.min((raised / goal) * 100, 100);
-
-        document.getElementById("raisedAmount").textContent = "$" + raised.toLocaleString("en-US");
-        document.getElementById("goalAmount").textContent   = "$" + goal.toLocaleString("en-US");
-        document.getElementById("midMark").textContent      = "$" + (goal / 2).toLocaleString("en-US");
-        document.getElementById("endMark").textContent      = "$" + goal.toLocaleString("en-US");
-        document.getElementById("progressFill").style.width = percent + "%";
+ 
+<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
+<div id="footer-placeholder"></div>
+<script src="script.js"></script>
+<script>
+    // Change the symbol in one place (e.g. "$" or "₱")
+    const CUR = "\u20B1";
+    const GOAL = 50000;
+    let raised = 34000;
+    let selected = 250;
+ 
+    const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
+    const $ = (id) => document.getElementById(id);
+ 
+    
+    document.querySelectorAll(".amount-btn").forEach((b) => (b.textContent = fmt(+b.dataset.amount)));
+    document.querySelector(".cur").textContent = CUR;
+    $("goalAmount").textContent = fmt(GOAL);
+    $("startMark").textContent = fmt(0);
+    $("midMark").textContent = fmt(GOAL / 2);
+    $("endMark").textContent = fmt(GOAL);
+ 
+    function render(from) {
+        const percent = Math.min((raised / GOAL) * 100, 100);
+        $("progressFill").style.width = percent + "%";
+        // count up from the old total to the new one
+        const start = performance.now(), dur = 900;
+        (function tick(now) {
+            const p = Math.min((now - start) / dur, 1);
+            $("raisedAmount").textContent = fmt(from + (raised - from) * (1 - Math.pow(1 - p, 3)));
+            if (p < 1) requestAnimationFrame(tick);
+        })(start);
     }
-
-    // $10, $25, $50, $100 buttons add straight to the bar
-    document.querySelectorAll("[data-amount]").forEach(function (button) {
-        button.addEventListener("click", function (e) {
-            e.preventDefault();
-            addDonation(Number(button.dataset.amount));
+ 
+    function showImpact(amount) {
+        $("donateImpact").textContent = amount > 0
+            ? fmt(amount) + " feeds a rescued animal for " + Math.max(1, Math.floor(amount / 25)) + " day(s)"
+            : "";
+    }
+ 
+    
+    document.querySelectorAll(".amount-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            $("customAmount").value = "";
+            selected = +btn.dataset.amount;
+            showImpact(selected);
         });
     });
-
-    // Donate Now adds whatever is typed in the box
-    document.getElementById("donateBtn").addEventListener("click", function () {
-        const input = document.getElementById("customAmount");
-        const amount = parseFloat(input.value);
-
-        if (amount > 0) {
-            addDonation(amount);
-            input.value = "";
-        }
+ 
+    
+    $("customAmount").addEventListener("input", (e) => {
+        document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
+        selected = parseFloat(e.target.value) || 0;
+        showImpact(selected);
     });
-
-    addDonation(0); // show the starting numbers
+ 
+    $("donateBtn").addEventListener("click", () => {
+        const thanks = $("thanks");
+        if (!(selected > 0)) {
+            thanks.textContent = "Choose or enter an amount to donate.";
+            thanks.classList.add("show");
+            return;
+        }
+        const before = raised;
+        raised += selected;
+        render(before);
+        thanks.textContent = "Thank you! Your " + fmt(selected) + " gift moves us closer to our goal.";
+        thanks.classList.add("show");
+        $("customAmount").value = "";
+    });
+ 
+    showImpact(selected);
+    render(0);
 </script>
 </body>
 </html>

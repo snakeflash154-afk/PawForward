@@ -4,58 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Contact Us</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<header>
+ 
+<header class="site-header" id="siteHeader">
     <div class="header-container">
-
-        <div class="header-left">
-            <h1>PawForward</h1>
-            <p>Helping Animals, One Paw at a Time</p>
-        </div>
-
-        <div class="header-center">
-            <img src="images/logo.png" alt="PawForward Logo">
-        </div>
-
+        <a href="index.html" class="brand">
+            <img src="images/logo.png" alt="PawForward logo">
+            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
+        </a>
+        <nav id="mainNav" aria-label="Main">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="adopt.html">Adopt</a></li>
+                <li><a href="donate.html">Donate</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="contact.html" class="active">Contact Us</a></li>
+            </ul>
+        </nav>
         <div class="header-right">
             <a href="cart.html" class="header-button">Cart</a>
-
-            <button type="button" class="header-button" id="openPopup">
-                Sign In
-            </button>
-
-            <img src="images/user.png" alt="Profile"
-                 class="profile-picture">
+            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
+            <img src="images/user.png" alt="Profile" class="profile-picture">
+            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
         </div>
-
     </div>
-
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li>|</li>
-            <li><a href="about.html">About Us</a></li>
-            <li>|</li>
-            <li><a href="adopt.html">Adopt</a></li>
-            <li>|</li>
-            <li><a href="donate.html">Donate</a></li>
-            <li>|</li>
-            <li><a href="shop.html">Shop</a></li>
-            <li>|</li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-    </nav>
 </header>
-    <iframe 
-        src="popup/account-popup.html"
-        id="popFrame"
-        class="popup-frame">
-    </iframe>
-    <div id="footer-placeholder"></div>
-    <script src="script.js"></script>
+ 
+<section class="page-banner">
+    <h1><span>Contact us</span></h1>
+    <p>Found a stray? Want to adopt, foster, or volunteer? Send us a message.</p>
+</section>
+ 
+<section class="container contact-wrap">
+    <div class="contact-info reveal">
+        <h2>We'd love to hear from you</h2>
+        <p>We usually reply within two days. If an animal is injured, please call us instead.</p>
+        <div class="info-item"><strong>Email</strong>hello@pawforward.org</div>
+        <div class="info-item"><strong>Phone</strong>+63 900 000 0000</div>
+        <div class="info-item"><strong>Shelter address</strong>Urdaneta City, Pangasinan</div>
+        <div class="info-item"><strong>Visiting hours</strong>Mon to Sat, 9:00 AM to 5:00 PM</div>
+    </div>
+ 
+    <form class="contact-form reveal" id="contactForm">
+        <label for="cName">Your name</label>
+        <input type="text" id="cName" required placeholder="Enter your name">
+ 
+        <label for="cEmail">Email address</label>
+        <input type="email" id="cEmail" required placeholder="Enter your email">
+ 
+        <label for="cTopic">What can we help with?</label>
+        <select id="cTopic">
+            <option>Adopting a pet</option>
+            <option>Reporting a stray</option>
+            <option>Volunteering or fostering</option>
+            <option>Donations</option>
+            <option>Something else</option>
+        </select>
+ 
+        <label for="cMessage">Message</label>
+        <textarea id="cMessage" required placeholder="Tell us a little more"></textarea>
+ 
+        <button type="submit" class="donate-now">Send message</button>
+        <p class="thanks" id="formThanks" role="status"></p>
+    </form>
+</section>
+ 
+<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
+<div id="footer-placeholder"></div>
+<script src="script.js"></script>
+<script>
+    document.getElementById("contactForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        
+        const msg = document.getElementById("formThanks");
+        msg.textContent = "Thanks, " + document.getElementById("cName").value + "! We got your message and will reply soon.";
+        msg.classList.add("show");
+        this.reset();
+    });
+</script>
 </body>
 </html>
+ 
