@@ -28,7 +28,7 @@ function addToCart(item) {
 /* Header button shows "Cart (3)" */
 function updateCartCount() {
     const count = loadCart().reduce((sum, i) => sum + i.qty, 0);
-    document.querySelectorAll('a[href="cart.html"].header-button').forEach((a) => {
+    document.querySelectorAll('[data-cart]').forEach((a) => {
         a.textContent = count ? "Cart (" + count + ")" : "Cart";
     });
 }
@@ -55,13 +55,6 @@ updateCartCount();
 /* ---------- Cart page only ---------- */
 const listEl = document.getElementById("cartList");
 if (listEl) {
-    // Demo items so you can see the page working. Delete this block once your shop adds real items.
-    if (localStorage.getItem(CART_KEY) === null) {
-        saveCart([
-            { id: "demo-1", name: "Dog leash", price: 350, img: "images/shop-leash.jpg", qty: 1 },
-            { id: "demo-2", name: "Rescue paw tote bag", price: 480, img: "images/shop-tote.jpg", qty: 2 }
-        ]);
-    }
 
     const layout = document.getElementById("cartLayout");
     const emptyEl = document.getElementById("cartEmpty");

@@ -1,7 +1,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
- 
+
 body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
- 
+
 .popup-overlay {
     min-height: 100vh;
     display: flex;
@@ -12,7 +12,7 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
     backdrop-filter: blur(4px);
     animation: overlayIn .35s ease both;
 }
- 
+
 .popup-container {
     position: relative;
     width: 100%;
@@ -26,11 +26,11 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
     box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
     animation: popIn .45s cubic-bezier(.2, .7, .2, 1) both;
 }
- 
+
 @keyframes overlayIn { from { opacity: 0; } }
 @keyframes popIn { from { opacity: 0; transform: translateY(24px) scale(.96); } }
 @keyframes swap { from { opacity: 0; transform: translateY(14px); } }
- 
+
 .close-button {
     position: absolute;
     top: 12px; right: 14px;
@@ -43,13 +43,13 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
     transition: background-color .25s, color .25s, transform .25s;
 }
 .close-button:hover { background: #faf3f3; color: rgb(182, 55, 55); transform: rotate(90deg); }
- 
+
 .popup-container h2 { text-align: center; margin-bottom: 8px; font-size: 24px; color: #2a2222; }
 .popup-container p { text-align: center; margin-bottom: 22px; color: #6b5a5a; font-size: 14px; }
- 
+
 .popup-container form { display: flex; flex-direction: column; }
 .popup-container label { margin-bottom: 6px; font-weight: 700; font-size: 13px; }
- 
+
 .popup-container input {
     padding: 12px 14px;
     margin-bottom: 16px;
@@ -63,7 +63,7 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
     border-color: rgb(182, 55, 55);
     box-shadow: 0 0 0 4px rgba(182, 55, 55, .12);
 }
- 
+
 .popup-container form button {
     padding: 13px;
     font: inherit; font-weight: 700; font-size: 15px;
@@ -74,19 +74,33 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
     transition: background-color .3s, transform .3s;
 }
 .popup-container form button:hover { background: rgb(140, 40, 40); transform: translateY(-2px); }
- 
+
 .popup-container a { color: rgb(182, 55, 55); font-weight: 700; text-decoration: none; }
 .popup-container a:hover { text-decoration: underline; }
 .popup-container a:focus-visible, .popup-container button:focus-visible { outline: 3px solid #f2b8b8; outline-offset: 2px; }
- 
+
 #signInForm + p { margin-top: 18px; margin-bottom: 0; }
 #signUpSection form + p { margin-top: 18px; margin-bottom: 0; }
- 
+
 /* Plays whenever your JS switches the section from display:none to visible */
 #signUpSection { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
 #signInForm, #signInForm + p { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
- 
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
- 
+
+/* ---- additions for the new sign-in flow ---- */
+.popup-container [hidden] { display: none !important; }
+.popup-container section { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
+.popup-container .switch { margin: 18px 0 0; }
+.popup-container .notice {
+    margin: 0 0 18px; padding: 10px 14px;
+    background: #faf3f3; border-left: 4px solid rgb(182, 55, 55);
+    border-radius: 8px; text-align: left; font-weight: 700; font-size: 13px; color: rgb(140, 40, 40);
+}
+.popup-container .form-error {
+    margin: -6px 0 14px; padding: 9px 12px;
+    background: #fdecec; color: #a12626; border-radius: 8px;
+    font-size: 13px; font-weight: 700; text-align: left;
+}

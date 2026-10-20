@@ -1,15 +1,73 @@
-/* ---------- Sign-in popup (your original logic) ---------- */
-const openPopup = document.getElementById("openPopup");
-const popupFrame = document.getElementById("popFrame");
+/* Site-wide behavior. Needs core.js and layout.js loaded first. */
 
-if (openPopup && popupFrame) {
-    openPopup.addEventListener("click", () => { popupFrame.style.display = "block"; });
+const popup = document.getElementById("popFrame");
+const signInBtn = document.getElementById("openPopup");
+const greeting = document.getElementById("greeting");
+const header = document.getElementById("siteHeader");
+
+/* ---------- Sign-in popup + auth state ---------- */
+let popReady = false;
+let pendingNotice = null;
+
+function sendOpen(notice) { popup.contentWindow.postMessage({ type: "open", notice: notice }, "*"); }
+function openAuth(notice) {
+    popup.style.display = "block";
+    if (popReady) sendOpen(notice || "");
+    else pendingNotice = notice || "";
 }
+function closeAuth() { popup.style.display = "none"; }
+
+// Returns true if signed in. Otherwise opens the popup with a message and returns false.
+function requireAuth(notice) {
+    if (Auth.current()) return true;
+    openAuth(notice);
+    return false;
+}
+
+function refreshAuth() {
+    const user = Auth.current();
+    signInBtn.textContent = user ? "Sign out" : "Sign In";
+    greeting.hidden = !user;
+    greeting.textContent = user ? "Hi, " + user.firstName : "";
+    window.dispatchEvent(new Event("authchange"));
+}
+
 window.addEventListener("message", (event) => {
-    if (event.data === "closePopup" && popupFrame) popupFrame.style.display = "none";
+    if (event.source !== popup.contentWindow) return;
+    const type = typeof event.data === "string" ? event.data : event.data && event.data.type;
+    if (type === "ready") {
+        popReady = true;
+        if (pendingNotice !== null) { sendOpen(pendingNotice); pendingNotice = null; }
+    }
+    if (type === "closePopup" || type === "close") closeAuth();
+    if (type === "authChanged") { closeAuth(); refreshAuth(); }
 });
 
-/* ---------- Footer loader (your original logic) ---------- */
+signInBtn.addEventListener("click", () => {
+    if (Auth.current()) { Auth.signOut(); refreshAuth(); }
+    else openAuth();
+});
+window.addEventListener("storage", refreshAuth);   // keeps other tabs in sync
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAuth(); });
+refreshAuth();
+
+/* ---------- Back button on inner pages ---------- */
+const banner = document.querySelector(".page-banner");
+if (banner) {
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "back-btn";
+    back.innerHTML = "&larr; Back";
+    back.addEventListener("click", () => {
+        let sameSite = false;
+        try { sameSite = document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+        if (sameSite && history.length > 1) history.back();
+        else location.href = "index.html";
+    });
+    banner.prepend(back);
+}
+
+/* ---------- Footer loader ---------- */
 const footerPlaceholder = document.getElementById("footer-placeholder");
 if (footerPlaceholder) {
     fetch("footer/footer.html")
@@ -19,36 +77,37 @@ if (footerPlaceholder) {
 }
 
 /* ---------- Header: solid after scroll, hides on scroll down ---------- */
-const header = document.getElementById("siteHeader");
-let lastY = window.scrollY;
+const mainNav = document.getElementById("mainNav");
+const menuToggle = document.getElementById("menuToggle");
 window.addEventListener("scroll", () => {
     const y = window.scrollY;
-    header.classList.toggle("scrolled", y > 60);
-    header.classList.toggle("hide", y > lastY && y > 400);
-    lastY = y;
+    const menuOpen = mainNav.classList.contains("open");
+    header.classList.toggle("scrolled", y > 60 || menuOpen);
 }, { passive: true });
 
-/* ---------- Mobile menu ---------- */
-const menuToggle = document.getElementById("menuToggle");
-const mainNav = document.getElementById("mainNav");
-if (menuToggle) {
-    menuToggle.addEventListener("click", () => {
-        const open = mainNav.classList.toggle("open");
-        menuToggle.setAttribute("aria-expanded", open);
-        header.classList.toggle("scrolled", open || window.scrollY > 60);
-    });
-}
+menuToggle.addEventListener("click", () => {
+    const open = mainNav.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", open);
+    header.classList.toggle("scrolled", open || window.scrollY > 60);
+});
 
-/* ---------- Scroll reveal + counters + progress bar ---------- */
+/* ---------- Reveal, counters, progress bar ---------- */
 function animateCount(el) {
-    const target = +el.dataset.count;
-    const duration = 1800;
-    const start = performance.now();
+    const target = +el.dataset.count, start = performance.now(), duration = 1800;
     (function tick(now) {
         const p = Math.min((now - start) / duration, 1);
         el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
         if (p < 1) requestAnimationFrame(tick);
     })(start);
+}
+
+// Homepage progress bar reads the real total
+const homeFill = document.getElementById("progressFill");
+const homeText = document.getElementById("progressText");
+if (homeFill && homeFill.dataset.percent) {
+    const pct = Math.round(Fund.percent());
+    homeFill.dataset.percent = pct;
+    if (homeText) homeText.textContent = pct + "% of this month's goal reached";
 }
 
 const observer = new IntersectionObserver((entries) => {
@@ -61,38 +120,51 @@ const observer = new IntersectionObserver((entries) => {
         observer.unobserve(el);
     });
 }, { threshold: 0.25 });
-
 document.querySelectorAll(".reveal, [data-count], [data-percent]").forEach((el) => observer.observe(el));
 
-/* ---------- Donation widget ---------- */
-// Homepage widget only (donate.html has its own inline logic)
-const onHome = !!document.getElementById("donateNow");
-const amountBtns = onHome ? document.querySelectorAll(".amount-btn") : [];
-const customInput = onHome ? document.getElementById("customAmount") : null;
-const impactText = document.getElementById("donateImpact");
+/* ---------- Homepage donation widget ---------- */
 const donateNow = document.getElementById("donateNow");
+if (donateNow) {
+    const amountBtns = document.querySelectorAll(".amount-btn");
+    const customInput = document.getElementById("customAmount");
+    const impactText = document.getElementById("donateImpact");
 
-function showImpact(amount) {
-    if (!impactText) return;
-    if (!amount || amount < 1) { impactText.textContent = ""; return; }
-    const meals = Math.max(1, Math.floor(amount / 25));
-    impactText.textContent = "\u20B1" + Number(amount).toLocaleString() + " feeds a rescued animal for " + meals + (meals === 1 ? " day" : " days");
-    donateNow.href = "donate.html?amount=" + amount;
-}
+    const showImpact = (amount) => {
+        if (!(amount >= 1)) { impactText.textContent = ""; donateNow.href = "donate.html"; return; }
+        const days = Math.max(1, Math.floor(amount / 25));
+        impactText.textContent = "\u20B1" + Number(amount).toLocaleString() + " feeds a rescued animal for " + days + (days === 1 ? " day" : " days");
+        donateNow.href = "donate.html?amount=" + amount;
+    };
 
-amountBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    amountBtns.forEach((btn) => btn.addEventListener("click", () => {
         amountBtns.forEach((b) => b.classList.remove("selected"));
         btn.classList.add("selected");
         customInput.value = "";
         showImpact(+btn.dataset.amount);
-    });
-});
-
-if (customInput) {
+    }));
     customInput.addEventListener("input", () => {
         amountBtns.forEach((b) => b.classList.remove("selected"));
         showImpact(+customInput.value);
     });
+    // Signed-out visitors are asked to sign in before they can donate
+    donateNow.addEventListener("click", (e) => {
+        if (!requireAuth("Please sign in to donate.")) e.preventDefault();
+    });
+    showImpact(250);
 }
-if (onHome) showImpact(250);s
+
+/* ---------- Smooth page transitions ---------- */
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (a.target === "_blank" || a.hasAttribute("download") || reduceMotion) return;
+    let url;
+    try { url = new URL(a.href, location.href); } catch (err) { return; }
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;   // same page or #anchor
+    e.preventDefault();
+    document.body.classList.add("leaving");
+    setTimeout(() => { location.href = a.href; }, 260);
+});
+window.addEventListener("pageshow", (e) => { if (e.persisted) document.body.classList.remove("leaving"); });

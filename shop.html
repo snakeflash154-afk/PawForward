@@ -4,80 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Shop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<header>
-    <div class="header-container">
 
-        <div class="header-left">
-            <h1>PawForward</h1>
-            <p>Helping Animals, One Paw at a Time</p>
-        </div>
+<div id="header-mount"></div>
+<script src="layout.js"></script>
 
-        <div class="header-center">
-            <img src="images/logo.png" alt="PawForward Logo">
-        </div>
-
-        <div class="header-right">
-            <a href="cart.html" class="header-button">Cart</a>
-
-            <button type="button" class="header-button" id="openPopup">
-                Sign In
-            </button>
-
-            <img src="images/user.png" alt="Profile"
-                 class="profile-picture">
-        </div>
-
-    </div>
-
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li>|</li>
-            <li><a href="about.html">About Us</a></li>
-            <li>|</li>
-            <li><a href="adopt.html">Adopt</a></li>
-            <li>|</li>
-            <li><a href="donate.html">Donate</a></li>
-            <li>|</li>
-            <li><a href="shop.html">Shop</a></li>
-            <li>|</li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-    </nav>
-</header>
+<section class="page-banner">
+    <h1><span>Shop</span></h1>
+    <p>Every purchase pays for food and vet care for rescued animals. Free shipping over &#8369;1,000.</p>
+</section>
 
 <section class="container">
-    <h2>Shop</h2>
-    <p class="subtitle">Every purchase helps fund food, shelter and vet care.</p>
-
-    <div class="shop-grid" id="shopGrid">
-        <!-- Based HTML Design - Css is already designed --->
-        <!-- shopGrid.innerHTML += `
-            <article class="item-card">
-                <div class="item-img">
-                    <img src="${item.image}" alt="${item.name}">
-                </div>
-                <div class="item-body">
-                    <h3>${item.name}</h3>
-                    <p class="desc">${item.desc}</p>
-                    <span class="price">$${item.price.toFixed(2)}</span>
-                    <span class="stock">In stock: ${item.stock}</span>
-                    <a href="#" class="btn">Add to Cart</a>
-                </div>
-            </article> -->
+    <div class="chips" id="chips" role="group" aria-label="Filter products">
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-filter="pets" aria-pressed="false">For pets</button>
+        <button type="button" class="chip" data-filter="merch" aria-pressed="false">Merch</button>
     </div>
+    <div class="shop-grid" id="shopGrid"></div>
 </section>
-    <iframe 
-        src="popup/account-popup.html"
-        id="popFrame"
-        class="popup-frame">
-    </iframe>
-    <div id="footer-placeholder"></div>
-    <script src="script.js"></script>
+
+<div id="footer-placeholder"></div>
+<script src="core.js"></script>
+<script src="script.js"></script>
+<script src="cart.js"></script>
+<script>
+    // Sample products. Replace with your real ones (later this list will come from the back end).
+    const PRODUCTS = [
+        { id: "leash", name: "Dog leash",           cat: "pets",  price: 350, desc: "Strong, soft-grip nylon leash. 1.5 m." },
+        { id: "bowl",  name: "Pet food bowl",       cat: "pets",  price: 220, desc: "Non-slip stainless steel bowl." },
+        { id: "toy",   name: "Cat toy set",         cat: "pets",  price: 180, desc: "Five toys to keep curious cats busy." },
+        { id: "tote",  name: "Rescue paw tote bag", cat: "merch", price: 480, desc: "Sturdy canvas tote with our paw print." },
+        { id: "tee",   name: "PawForward T-shirt",  cat: "merch", price: 650, desc: "Soft cotton tee. Wear your support." },
+        { id: "mug",   name: "Ceramic mug",         cat: "merch", price: 320, desc: "For coffee with a good cause." }
+    ];
+    const peso = (n) => "\u20B1" + n.toLocaleString("en-US");
+
+    const grid = document.getElementById("shopGrid");
+    function renderProducts(filter) {
+        grid.innerHTML = "";
+        PRODUCTS.filter((p) => filter === "all" || p.cat === filter).forEach((p, i) => {
+            const card = document.createElement("article");
+            card.className = "item-card";
+            card.style.setProperty("--i", i);
+            card.innerHTML =
+                '<div class="item-img ph"><img loading="lazy" onerror="this.remove()"></div>' +
+                '<div class="item-body"><h3></h3><p class="desc"></p><span class="price"></span><button type="button" class="btn add-to-cart">Add to cart</button></div>';
+            const img = card.querySelector("img");
+            img.src = "images/shop-" + p.id + ".jpg"; img.alt = p.name;
+            card.querySelector("h3").textContent = p.name;
+            card.querySelector(".desc").textContent = p.desc;
+            card.querySelector(".price").textContent = peso(p.price);
+            const btn = card.querySelector(".add-to-cart");
+            btn.dataset.id = p.id; btn.dataset.name = p.name; btn.dataset.price = p.price; btn.dataset.img = "images/shop-" + p.id + ".jpg";
+            grid.appendChild(card);
+        });
+    }
+
+    document.getElementById("chips").addEventListener("click", (e) => {
+        const chip = e.target.closest(".chip");
+        if (!chip) return;
+        document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === chip));
+        renderProducts(chip.dataset.filter);
+    });
+    renderProducts("all");
+</script>
 </body>
 </html>

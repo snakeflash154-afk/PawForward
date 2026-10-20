@@ -9,37 +9,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
- 
-<header class="site-header" id="siteHeader">
-    <div class="header-container">
-        <a href="index.html" class="brand">
-            <img src="images/logo.png" alt="PawForward logo">
-            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
-        </a>
-        <nav id="mainNav" aria-label="Main">
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="adopt.html">Adopt</a></li>
-                <li><a href="donate.html">Donate</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="contact.html" class="active">Contact Us</a></li>
-            </ul>
-        </nav>
-        <div class="header-right">
-            <a href="cart.html" class="header-button">Cart</a>
-            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
-            <img src="images/user.png" alt="Profile" class="profile-picture">
-            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
-        </div>
-    </div>
-</header>
- 
+
+<div id="header-mount"></div>
+<script src="layout.js"></script>
+
 <section class="page-banner">
     <h1><span>Contact us</span></h1>
     <p>Found a stray? Want to adopt, foster, or volunteer? Send us a message.</p>
 </section>
- 
+
 <section class="container contact-wrap">
     <div class="contact-info reveal">
         <h2>We'd love to hear from you</h2>
@@ -49,14 +27,14 @@
         <div class="info-item"><strong>Shelter address</strong>Urdaneta City, Pangasinan</div>
         <div class="info-item"><strong>Visiting hours</strong>Mon to Sat, 9:00 AM to 5:00 PM</div>
     </div>
- 
+
     <form class="contact-form reveal" id="contactForm">
         <label for="cName">Your name</label>
         <input type="text" id="cName" required placeholder="Enter your name">
- 
+
         <label for="cEmail">Email address</label>
         <input type="email" id="cEmail" required placeholder="Enter your email">
- 
+
         <label for="cTopic">What can we help with?</label>
         <select id="cTopic">
             <option>Adopting a pet</option>
@@ -65,22 +43,27 @@
             <option>Donations</option>
             <option>Something else</option>
         </select>
- 
+
         <label for="cMessage">Message</label>
         <textarea id="cMessage" required placeholder="Tell us a little more"></textarea>
- 
+
         <button type="submit" class="donate-now">Send message</button>
         <p class="thanks" id="formThanks" role="status"></p>
     </form>
 </section>
- 
-<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
 <div id="footer-placeholder"></div>
+<script src="core.js"></script>
 <script src="script.js"></script>
+<script src="cart.js"></script>
 <script>
+    const params = new URLSearchParams(location.search);
+    if (params.get("pet")) {
+        document.getElementById("cTopic").value = "Adopting a pet";
+        document.getElementById("cMessage").value = "Hi! I'd like to know more about adopting " + params.get("pet") + ".";
+    }
     document.getElementById("contactForm").addEventListener("submit", function (e) {
         e.preventDefault();
-        
+        // TODO: connect to your backend or a form service
         const msg = document.getElementById("formThanks");
         msg.textContent = "Thanks, " + document.getElementById("cName").value + "! We got your message and will reply soon.";
         msg.classList.add("show");
@@ -89,4 +72,3 @@
 </script>
 </body>
 </html>
- 

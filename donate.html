@@ -9,44 +9,28 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
- 
-<header class="site-header" id="siteHeader">
-    <div class="header-container">
-        <a href="index.html" class="brand">
-            <img src="images/logo.png" alt="PawForward logo">
-            <span><strong>PawForward</strong><small>Helping Animals, One Paw at a Time</small></span>
-        </a>
-        <nav id="mainNav" aria-label="Main">
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="adopt.html">Adopt</a></li>
-                <li><a href="donate.html" class="active">Donate</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="contact.html">Contact Us</a></li>
-            </ul>
-        </nav>
-        <div class="header-right">
-            <a href="cart.html" class="header-button">Cart</a>
-            <button type="button" class="header-button solid" id="openPopup">Sign In</button>
-            <img src="images/user.png" alt="Profile" class="profile-picture">
-            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
-        </div>
-    </div>
-</header>
- 
+
+<div id="header-mount"></div>
+<script src="layout.js"></script>
+
 <section class="page-banner">
     <h1><span>Donate</span></h1>
     <p>Help us reach our next milestone and keep rescued animals fed, healthy, and safe.</p>
 </section>
- 
+
 <section class="container">
     <div class="donate-box card reveal">
+        <div class="gate" id="gate" hidden>
+            <strong>Sign in to donate</strong>
+            <p>Create a free account or sign in so we can thank you and keep track of your gift.</p>
+            <button type="button" class="btn" id="gateSignIn">Sign in or sign up</button>
+        </div>
+
         <div class="raised-wrap">
             <p class="raised" id="raisedAmount">0</p>
             <p class="goal-text">raised of our <strong id="goalAmount"></strong> goal</p>
         </div>
- 
+
         <div class="progress" role="progressbar" aria-label="Fundraising progress">
             <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -55,14 +39,14 @@
             <span id="midMark"></span>
             <span id="endMark"></span>
         </div>
- 
+
         <div class="donate-amounts" id="amounts">
             <button type="button" class="amount-btn" data-amount="100"></button>
             <button type="button" class="amount-btn selected" data-amount="250"></button>
             <button type="button" class="amount-btn" data-amount="500"></button>
             <button type="button" class="amount-btn" data-amount="1000"></button>
         </div>
- 
+
         <div class="custom-amount">
             <label for="customAmount" style="display:block;font-weight:700;margin-bottom:8px">Or enter any amount</label>
             <div class="amount-input">
@@ -70,86 +54,96 @@
                 <input type="number" id="customAmount" min="1" placeholder="Enter amount">
             </div>
         </div>
- 
+
         <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
         <button type="button" class="donate-now" id="donateBtn">Donate now</button>
         <p class="thanks" id="thanks" role="status"></p>
     </div>
 </section>
- 
-<iframe src="popup/account-popup.html" id="popFrame" class="popup-frame" title="Sign in"></iframe>
+
 <div id="footer-placeholder"></div>
+<script src="core.js"></script>
 <script src="script.js"></script>
+<script src="cart.js"></script>
 <script>
-    // Change the symbol in one place (e.g. "$" or "₱")
-    const CUR = "\u20B1";
-    const GOAL = 50000;
-    let raised = 34000;
-    let selected = 250;
- 
-    const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
+    const CUR = "\u20B1";              // change to "$" if you prefer
     const $ = (id) => document.getElementById(id);
- 
-    
+    const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
+    let selected = 250;
+
     document.querySelectorAll(".amount-btn").forEach((b) => (b.textContent = fmt(+b.dataset.amount)));
     document.querySelector(".cur").textContent = CUR;
-    $("goalAmount").textContent = fmt(GOAL);
+    $("goalAmount").textContent = fmt(Fund.goal);
     $("startMark").textContent = fmt(0);
-    $("midMark").textContent = fmt(GOAL / 2);
-    $("endMark").textContent = fmt(GOAL);
- 
+    $("midMark").textContent = fmt(Fund.goal / 2);
+    $("endMark").textContent = fmt(Fund.goal);
+
     function render(from) {
-        const percent = Math.min((raised / GOAL) * 100, 100);
-        $("progressFill").style.width = percent + "%";
-        // count up from the old total to the new one
-        const start = performance.now(), dur = 900;
+        const to = Fund.raised();
+        $("progressFill").style.width = Fund.percent() + "%";
+        const start = performance.now();
         (function tick(now) {
-            const p = Math.min((now - start) / dur, 1);
-            $("raisedAmount").textContent = fmt(from + (raised - from) * (1 - Math.pow(1 - p, 3)));
+            const p = Math.min((now - start) / 900, 1);
+            $("raisedAmount").textContent = fmt(from + (to - from) * (1 - Math.pow(1 - p, 3)));
             if (p < 1) requestAnimationFrame(tick);
         })(start);
     }
- 
+
     function showImpact(amount) {
         $("donateImpact").textContent = amount > 0
             ? fmt(amount) + " feeds a rescued animal for " + Math.max(1, Math.floor(amount / 25)) + " day(s)"
             : "";
     }
- 
-    
-    document.querySelectorAll(".amount-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
-            btn.classList.add("selected");
-            $("customAmount").value = "";
-            selected = +btn.dataset.amount;
-            showImpact(selected);
-        });
-    });
- 
-    
+
+    function say(text) { const t = $("thanks"); t.textContent = text; t.classList.add("show"); }
+
+    // Signed-out visitors can look around but cannot donate
+    function applyGate() {
+        const user = Auth.current();
+        $("gate").hidden = !!user;
+        $("donateBtn").textContent = user ? "Donate now" : "Sign in to donate";
+        if (user) $("thanks").classList.remove("show");
+    }
+    window.addEventListener("authchange", applyGate);
+    $("gateSignIn").addEventListener("click", () => openAuth("Please sign in to donate."));
+
+    document.querySelectorAll(".amount-btn").forEach((btn) => btn.addEventListener("click", () => {
+        document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        $("customAmount").value = "";
+        selected = +btn.dataset.amount;
+        showImpact(selected);
+    }));
+
     $("customAmount").addEventListener("input", (e) => {
         document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
         selected = parseFloat(e.target.value) || 0;
         showImpact(selected);
     });
- 
+
     $("donateBtn").addEventListener("click", () => {
-        const thanks = $("thanks");
-        if (!(selected > 0)) {
-            thanks.textContent = "Choose or enter an amount to donate.";
-            thanks.classList.add("show");
-            return;
-        }
-        const before = raised;
-        raised += selected;
+        const user = Auth.current();
+        if (!user) { openAuth("Please sign in to donate."); return; }
+        if (!(selected > 0)) { say("Choose or enter an amount to donate."); return; }
+        const before = Fund.raised();
+        Fund.add(selected);
         render(before);
-        thanks.textContent = "Thank you! Your " + fmt(selected) + " gift moves us closer to our goal.";
-        thanks.classList.add("show");
+        say("Thank you, " + user.firstName + "! Your " + fmt(selected) + " gift moves us closer to our goal.");
         $("customAmount").value = "";
     });
- 
+
+    // Arriving from the homepage widget with ?amount=500
+    const fromUrl = parseFloat(new URLSearchParams(location.search).get("amount"));
+    if (fromUrl > 0) {
+        const preset = document.querySelector('.amount-btn[data-amount="' + fromUrl + '"]');
+        document.querySelectorAll(".amount-btn").forEach((b) => b.classList.remove("selected"));
+        if (preset) preset.classList.add("selected");
+        else $("customAmount").value = fromUrl;
+        selected = fromUrl;
+    }
+
     showImpact(selected);
+    applyGate();
     render(0);
 </script>
 </body>

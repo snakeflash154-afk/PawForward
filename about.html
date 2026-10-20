@@ -4,58 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | About Us</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-<header>
-    <div class="header-container">
 
-        <div class="header-left">
-            <h1>PawForward</h1>
-            <p>Helping Animals, One Paw at a Time</p>
-        </div>
+<div id="header-mount"></div>
+<script src="layout.js"></script>
 
-        <div class="header-center">
-            <img src="images/logo.png" alt="PawForward Logo">
-        </div>
+<section class="page-banner">
+    <h1><span>About us</span></h1>
+    <p>We rescue stray animals, nurse them back to health, and help them find homes.</p>
+</section>
 
-        <div class="header-right">
-            <a href="cart.html" class="header-button">Cart</a>
-
-            <button type="button" class="header-button" id="openPopup">
-                Sign In
-            </button>
-
-            <img src="images/user.png" alt="Profile"
-                 class="profile-picture">
-        </div>
-
+<section class="container story">
+    <div class="story-img ph reveal">
+        <img src="images/about-team.jpg" alt="PawForward volunteers with rescued dogs" loading="lazy" onerror="this.remove()">
     </div>
+    <div class="reveal">
+        <h2>Why we started</h2>
+        <p>PawForward began with a few neighbors feeding the strays on their street. Today we rescue dogs and cats, treat their injuries, vaccinate them, and place them with families who are ready to love them.</p>
+        <p>Every animal that comes through our doors is checked by a vet, fed well, and given time to trust people again.</p>
+        <a href="adopt.html" class="btn">Meet the animals</a>
+    </div>
+</section>
 
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li>|</li>
-            <li><a href="about.html">About Us</a></li>
-            <li>|</li>
-            <li><a href="adopt.html">Adopt</a></li>
-            <li>|</li>
-            <li><a href="donate.html">Donate</a></li>
-            <li>|</li>
-            <li><a href="shop.html">Shop</a></li>
-            <li>|</li>
-            <li><a href="contact.html">Contact Us</a></li>
-        </ul>
-    </nav>
-</header>
-    <iframe 
-        src="popup/account-popup.html"
-        id="popFrame"
-        class="popup-frame">
-    </iframe>
-    <div id="footer-placeholder"></div>
-    <script src="script.js"></script>
+<section class="container" style="padding-top:20px">
+    <h2>What we do</h2>
+    <p class="subtitle">Three jobs, one goal: a safe home for every stray.</p>
+    <div class="pillars">
+        <div class="pillar reveal"><h3>Rescue</h3><p>We respond to reports of strays and injured animals and bring them to safety.</p></div>
+        <div class="pillar reveal"><h3>Rehabilitate</h3><p>Vet care, vaccines, spay and neuter, and daily love until they are healthy and ready.</p></div>
+        <div class="pillar reveal"><h3>Rehome</h3><p>We match each animal with an adopter and follow up after they go home.</p></div>
+    </div>
+</section>
+
+<section class="impact">
+    <div class="container impact-grid">
+        <div><div class="impact-num"><span data-count="1200">0</span>+</div><p>Strays rescued from the streets</p></div>
+        <div><div class="impact-num"><span data-count="850">0</span>+</div><p>Animals adopted into loving homes</p></div>
+        <div><div class="impact-num"><span data-count="3400">0</span>+</div><p>Vaccinations and vet treatments given</p></div>
+    </div>
+</section>
+
+<section class="cta-band">
+    <div class="container">
+        <h2>Ready to help?</h2>
+        <p>Adopt a pet, give a gift, or reach out to volunteer. Every bit moves an animal closer to home.</p>
+        <div class="cta-actions">
+            <a href="adopt.html" class="btn">Adopt a pet</a>
+            <a href="donate.html" class="btn btn-outline">Donate</a>
+            <a href="contact.html" class="btn btn-outline">Volunteer</a>
+        </div>
+    </div>
+</section>
+
+<div id="footer-placeholder"></div>
+<script src="core.js"></script>
+<script src="script.js"></script>
+<script src="cart.js"></script>
 </body>
 </html>
