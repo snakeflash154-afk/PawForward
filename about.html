@@ -48,15 +48,27 @@
     </div>
 </section>
 
-<section class="cta-band">
-    <div class="container">
-        <h2>Ready to help?</h2>
-        <p>Adopt a pet, give a gift, or reach out to volunteer. Every bit moves an animal closer to home.</p>
-        <div class="cta-actions">
-            <a href="adopt.html" class="btn">Adopt a pet</a>
-            <a href="donate.html" class="btn btn-outline">Donate</a>
-            <a href="contact.html" class="btn btn-outline">Volunteer</a>
+<section class="donate-section container" id="donate" style="max-width:none">
+    <div class="donate-box reveal">
+        <h2>Defend strays every day</h2>
+        <p class="goal-text">Every peso you give helps an animal off the street.</p>
+        <div class="progress" aria-label="Monthly goal progress">
+            <div class="progress-fill" id="progressFill" data-percent="68"></div>
         </div>
+        <p class="goal-text" id="progressText" style="margin-top:8px;font-size:14px">68% of this month's goal reached</p>
+
+        <div class="donate-amounts" id="amounts">
+            <button type="button" class="amount-btn" data-amount="100">&#8369;100</button>
+            <button type="button" class="amount-btn selected" data-amount="250">&#8369;250</button>
+            <button type="button" class="amount-btn" data-amount="500">&#8369;500</button>
+            <button type="button" class="amount-btn" data-amount="1000">&#8369;1,000</button>
+        </div>
+        <div class="amount-input">
+            <span>&#8369;</span>
+            <input type="number" min="1" id="customAmount" placeholder="Other amount" aria-label="Custom donation amount">
+        </div>
+        <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
+        <a href="donate.html" class="donate-now" id="donateNow" style="display:inline-block;text-decoration:none">Donate now</a>
     </div>
 </section>
 

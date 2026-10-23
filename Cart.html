@@ -19,19 +19,12 @@
 </section>
 
 <section class="container">
-    <div class="cart-layout" id="cartLayout">
+    <div class="cart-wrap" id="cartLayout">
         <div class="cart-list" id="cartList"></div>
-
-        <aside class="summary">
-            <h2>Order summary</h2>
-            <div class="summary-row"><span>Subtotal</span><span id="subtotal"></span></div>
-            <div class="summary-row"><span>Shipping</span><span id="shipping"></span></div>
-            <p class="summary-note" id="shipNote"></p>
-            <div class="summary-row total"><span>Total</span><span id="total"></span></div>
+        <div class="cart-bar">
+            <div><span id="barCount"></span><strong id="barSubtotal"></strong></div>
             <button type="button" class="donate-now" id="checkoutBtn">Checkout</button>
-            <p class="thanks" id="checkoutNote" role="status"></p>
-            <p class="summary-note" style="margin-top:14px"><a href="shop.html" style="color:var(--red);font-weight:700">Continue shopping</a></p>
-        </aside>
+        </div>
     </div>
 
     <div class="cart-empty" id="cartEmpty" hidden>

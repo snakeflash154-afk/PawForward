@@ -51,22 +51,6 @@ window.addEventListener("storage", refreshAuth);   // keeps other tabs in sync
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAuth(); });
 refreshAuth();
 
-/* ---------- Back button on inner pages ---------- */
-const banner = document.querySelector(".page-banner");
-if (banner) {
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "back-btn";
-    back.innerHTML = "&larr; Back";
-    back.addEventListener("click", () => {
-        let sameSite = false;
-        try { sameSite = document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
-        if (sameSite && history.length > 1) history.back();
-        else location.href = "index.html";
-    });
-    banner.prepend(back);
-}
-
 /* ---------- Footer loader ---------- */
 const footerPlaceholder = document.getElementById("footer-placeholder");
 if (footerPlaceholder) {
@@ -79,11 +63,16 @@ if (footerPlaceholder) {
 /* ---------- Header: solid after scroll, hides on scroll down ---------- */
 const mainNav = document.getElementById("mainNav");
 const menuToggle = document.getElementById("menuToggle");
-window.addEventListener("scroll", () => {
+const progressBar = document.getElementById("scrollProgress");
+function onScroll() {
     const y = window.scrollY;
-    const menuOpen = mainNav.classList.contains("open");
-    header.classList.toggle("scrolled", y > 60 || menuOpen);
-}, { passive: true });
+    header.classList.toggle("scrolled", y > 60 || mainNav.classList.contains("open"));
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.transform = "scaleX(" + (max > 0 ? Math.min(y / max, 1) : 0) + ")";
+}
+window.addEventListener("scroll", onScroll, { passive: true });
+window.addEventListener("resize", onScroll);
+onScroll();
 
 menuToggle.addEventListener("click", () => {
     const open = mainNav.classList.toggle("open");
@@ -101,7 +90,7 @@ function animateCount(el) {
     })(start);
 }
 
-// Homepage progress bar reads the real total
+// Quick-donate progress bar reads the real total
 const homeFill = document.getElementById("progressFill");
 const homeText = document.getElementById("progressText");
 if (homeFill && homeFill.dataset.percent) {
@@ -122,7 +111,7 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.25 });
 document.querySelectorAll(".reveal, [data-count], [data-percent]").forEach((el) => observer.observe(el));
 
-/* ---------- Homepage donation widget ---------- */
+/* ---------- Quick-donate widget (any page that has #donateNow) ---------- */
 const donateNow = document.getElementById("donateNow");
 if (donateNow) {
     const amountBtns = document.querySelectorAll(".amount-btn");

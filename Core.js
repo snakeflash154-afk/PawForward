@@ -45,3 +45,33 @@ const Fund = {
     add(n) { localStorage.setItem(this.key, String(this.raised() + n)); },
     percent() { return Math.min((this.raised() / this.goal) * 100, 100); }
 };
+
+
+/* Sample animals. Replace with your real ones (later this comes from the back end). */
+const ANIMALS = [
+    { name: "Bantay",   type: "Dog", age: "2 yrs",  sex: "Male",   img: "images/animal-bantay.jpg",   desc: "Loyal and playful. Loves long walks and learns tricks fast." },
+    { name: "Mingming", type: "Cat", age: "1 yr",   sex: "Female", img: "images/animal-mingming.jpg", desc: "Gentle lap cat who purrs the moment you sit down." },
+    { name: "Choco",    type: "Dog", age: "4 yrs",  sex: "Male",   img: "images/animal-choco.jpg",    desc: "Calm and cuddly. Great with kids and other dogs." },
+    { name: "Luna",     type: "Cat", age: "3 yrs",  sex: "Female", img: "images/animal-luna.jpg",     desc: "Curious and clever. Happiest near a sunny window." },
+    { name: "Tagpi",    type: "Dog", age: "6 mos",  sex: "Female", img: "images/animal-tagpi.jpg",    desc: "Energetic puppy who needs a patient, active family." },
+    { name: "Kiko",     type: "Cat", age: "2 yrs",  sex: "Male",   img: "images/animal-kiko.jpg",     desc: "Shy at first, then your best friend. Loves treats." }
+];
+
+function animalCard(a, i) {
+    const card = document.createElement("article");
+    card.className = "animal-card";
+    card.style.setProperty("--i", i || 0);
+    card.innerHTML =
+        '<p class="animal-type"></p>' +
+        '<div class="animal-pic ph"><img loading="lazy" onerror="this.remove()"></div>' +
+        '<div class="animal-info"><h3></h3><p class="animal-desc"></p><a class="btn"></a></div>';
+    card.querySelector(".animal-type").innerHTML = a.type + " <span>&middot; " + a.age + " &middot; " + a.sex + "</span>";
+    const img = card.querySelector("img");
+    img.src = a.img; img.alt = a.name;
+    card.querySelector("h3").textContent = a.name;
+    card.querySelector(".animal-desc").textContent = a.desc;
+    const btn = card.querySelector(".btn");
+    btn.textContent = "Meet " + a.name;
+    btn.href = "contact.html?pet=" + encodeURIComponent(a.name);
+    return card;
+}
