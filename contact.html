@@ -28,25 +28,13 @@
         <div class="info-item"><strong>Visiting hours</strong>Mon to Sat, 9:00 AM to 5:00 PM</div>
     </div>
 
-    <form class="contact-form reveal" id="contactForm">
-        <label for="cName">Your name</label>
-        <input type="text" id="cName" required placeholder="Enter your name">
-
-        <label for="cEmail">Email address</label>
-        <input type="email" id="cEmail" required placeholder="Enter your email">
-
-        <label for="cTopic">What can we help with?</label>
-        <select id="cTopic">
-            <option>Adopting a pet</option>
-            <option>Reporting a stray</option>
-            <option>Volunteering or fostering</option>
-            <option>Donations</option>
-            <option>Something else</option>
-        </select>
-
-        <label for="cMessage">Message</label>
-        <textarea id="cMessage" required placeholder="Tell us a little more"></textarea>
-
+    <form class="contact-form reveal" id="contactForm" novalidate>
+        <p class="req-note"><span class="req" aria-hidden="true">*</span> Required</p>
+        <div class="field"><label for="cName">Your name<span class="req" aria-hidden="true">*</span></label><input type="text" id="cName" required aria-required="true" placeholder="Enter your name" autocomplete="name" aria-describedby="cName-msg"><small class="field-msg" id="cName-msg"></small></div>
+        <div class="field"><label for="cEmail">Email address<span class="req" aria-hidden="true">*</span></label><input type="email" id="cEmail" required aria-required="true" placeholder="Enter your email" autocomplete="email" aria-describedby="cEmail-msg"><small class="field-msg" id="cEmail-msg"></small></div>
+        <div class="field"><label for="cTopic">What can we help with?</label>
+            <select id="cTopic"><option>Adopting a pet</option><option>Reporting a stray</option><option>Volunteering or fostering</option><option>Donations</option><option>Something else</option></select></div>
+        <div class="field"><label for="cMessage">Message<span class="req" aria-hidden="true">*</span></label><textarea id="cMessage" required aria-required="true" placeholder="Tell us a little more" aria-describedby="cMessage-msg"></textarea><small class="field-msg" id="cMessage-msg"></small></div>
         <button type="submit" class="donate-now">Send message</button>
         <p class="thanks" id="formThanks" role="status"></p>
     </form>
@@ -55,20 +43,5 @@
 <script src="core.js"></script>
 <script src="script.js"></script>
 <script src="cart.js"></script>
-<script>
-    const params = new URLSearchParams(location.search);
-    if (params.get("pet")) {
-        document.getElementById("cTopic").value = "Adopting a pet";
-        document.getElementById("cMessage").value = "Hi! I'd like to know more about adopting " + params.get("pet") + ".";
-    }
-    document.getElementById("contactForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        // TODO: connect to your backend or a form service
-        const msg = document.getElementById("formThanks");
-        msg.textContent = "Thanks, " + document.getElementById("cName").value + "! We got your message and will reply soon.";
-        msg.classList.add("show");
-        this.reset();
-    });
-</script>
 </body>
 </html>

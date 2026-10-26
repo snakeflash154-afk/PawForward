@@ -47,29 +47,62 @@ const Fund = {
 };
 
 
-/* Sample animals. Replace with your real ones (later this comes from the back end). */
+/* ============================ Animals ============================
+   Sample data. Replace with your real animals (later this comes from the back end).
+   Each animal needs: ageMonths (whole number) and arrivalDate ("YYYY-MM-DD", the day it reached the shelter).
+   Age text, age group and days in shelter are all worked out from those two values. */
+const HIDDEN_GEM_DAYS = 90;      // in the shelter longer than this = Hidden Gem
+const SENIOR_FROM_MONTHS = 84;   // 7 years and up
+const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);   // sample-data helper only
+
 const ANIMALS = [
-    { name: "Bantay",   type: "Dog", age: "2 yrs",  sex: "Male",   img: "images/animal-bantay.jpg",   desc: "Loyal and playful. Loves long walks and learns tricks fast." },
-    { name: "Mingming", type: "Cat", age: "1 yr",   sex: "Female", img: "images/animal-mingming.jpg", desc: "Gentle lap cat who purrs the moment you sit down." },
-    { name: "Choco",    type: "Dog", age: "4 yrs",  sex: "Male",   img: "images/animal-choco.jpg",    desc: "Calm and cuddly. Great with kids and other dogs." },
-    { name: "Luna",     type: "Cat", age: "3 yrs",  sex: "Female", img: "images/animal-luna.jpg",     desc: "Curious and clever. Happiest near a sunny window." },
-    { name: "Tagpi",    type: "Dog", age: "6 mos",  sex: "Female", img: "images/animal-tagpi.jpg",    desc: "Energetic puppy who needs a patient, active family." },
-    { name: "Kiko",     type: "Cat", age: "2 yrs",  sex: "Male",   img: "images/animal-kiko.jpg",     desc: "Shy at first, then your best friend. Loves treats." }
+    { name: "Bantay",   type: "Dog", sex: "Male",   ageMonths: 24,  arrivalDate: daysAgo(140), img: "images/animal-bantay.jpg",   desc: "Loyal and playful. Loves long walks and learns tricks fast." },
+    { name: "Mingming", type: "Cat", sex: "Female", ageMonths: 12,  arrivalDate: daysAgo(35),  img: "images/animal-mingming.jpg", desc: "Gentle lap cat who purrs the moment you sit down." },
+    { name: "Choco",    type: "Dog", sex: "Male",   ageMonths: 48,  arrivalDate: daysAgo(20),  img: "images/animal-choco.jpg",    desc: "Calm and cuddly. Great with kids and other dogs." },
+    { name: "Luna",     type: "Cat", sex: "Female", ageMonths: 36,  arrivalDate: daysAgo(95),  img: "images/animal-luna.jpg",     desc: "Curious and clever. Happiest near a sunny window." },
+    { name: "Tagpi",    type: "Dog", sex: "Female", ageMonths: 6,   arrivalDate: daysAgo(12),  img: "images/animal-tagpi.jpg",    desc: "Energetic puppy who needs a patient, active family." },
+    { name: "Kiko",     type: "Cat", sex: "Male",   ageMonths: 24,  arrivalDate: daysAgo(60),  img: "images/animal-kiko.jpg",     desc: "Shy at first, then your best friend. Loves treats." },
+    { name: "Brownie",  type: "Dog", sex: "Male",   ageMonths: 96,  arrivalDate: daysAgo(210), img: "images/animal-brownie.jpg",  desc: "A gentle old soul who loves slow walks and warm laps." },
+    { name: "Pusit",    type: "Cat", sex: "Male",   ageMonths: 3,   arrivalDate: daysAgo(8),   img: "images/animal-pusit.jpg",    desc: "Tiny, fluffy and very playful. Chases anything that moves." },
+    { name: "Lola",     type: "Cat", sex: "Female", ageMonths: 120, arrivalDate: daysAgo(48),  img: "images/animal-lola.jpg",     desc: "Calm senior who just wants a quiet home and a soft bed." }
 ];
 
+function formatAge(months) {
+    if (months < 12) return months + (months === 1 ? " Month" : " Months");
+    const y = Math.floor(months / 12), r = months % 12;
+    return y + (y === 1 ? " Year" : " Years") + (r ? " " + r + (r === 1 ? " Month" : " Months") : "");
+}
+function ageGroup(a) { return a.ageMonths < 12 ? "young" : a.ageMonths >= SENIOR_FROM_MONTHS ? "senior" : "adult"; }
+function ageGroupLabel(a) { const g = ageGroup(a); return g === "young" ? (a.type === "Dog" ? "Puppy" : "Kitten") : g === "senior" ? "Senior" : "Adult"; }
+function daysInShelter(a) { return Math.max(0, Math.floor((Date.now() - new Date(a.arrivalDate + "T00:00:00").getTime()) / 86400000)); }
+function isHiddenGem(a) { return daysInShelter(a) > HIDDEN_GEM_DAYS; }
+
+// Hidden Gems first, then everyone by longest wait
+function sortAnimals(list) {
+    return list.slice().sort((a, b) => (isHiddenGem(b) - isHiddenGem(a)) || (daysInShelter(b) - daysInShelter(a)));
+}
+
 function animalCard(a, i) {
+    const days = daysInShelter(a), gem = isHiddenGem(a);
     const card = document.createElement("article");
-    card.className = "animal-card";
+    card.className = "animal-card" + (gem ? " is-gem" : "");
     card.style.setProperty("--i", i || 0);
     card.innerHTML =
-        '<p class="animal-type"></p>' +
-        '<div class="animal-pic ph"><img loading="lazy" onerror="this.remove()"></div>' +
-        '<div class="animal-info"><h3></h3><p class="animal-desc"></p><a class="btn"></a></div>';
-    card.querySelector(".animal-type").innerHTML = a.type + " <span>&middot; " + a.age + " &middot; " + a.sex + "</span>";
+        '<div class="animal-pic ph"><img loading="lazy" onerror="this.remove()">' + (gem ? '<span class="gem-badge">\u2605 Hidden Gem</span>' : "") + "</div>" +
+        '<div class="animal-info"><h3></h3>' +
+        '<ul class="badges" aria-label="Details"><li class="badge badge-type"></li><li class="badge badge-age"></li><li class="badge badge-sex"></li><li class="badge badge-group"></li></ul>' +
+        '<p class="animal-desc"></p><p class="wait"></p><a class="btn"></a></div>';
     const img = card.querySelector("img");
     img.src = a.img; img.alt = a.name;
     card.querySelector("h3").textContent = a.name;
+    card.querySelector(".badge-type").textContent = a.type;
+    card.querySelector(".badge-age").textContent = formatAge(a.ageMonths);
+    card.querySelector(".badge-sex").textContent = a.sex;
+    card.querySelector(".badge-group").textContent = ageGroupLabel(a);
     card.querySelector(".animal-desc").textContent = a.desc;
+    card.querySelector(".wait").textContent = gem
+        ? "Waiting " + days + " days for a home. Give " + a.name + " a second look."
+        : "In our shelter " + days + (days === 1 ? " day" : " days");
     const btn = card.querySelector(".btn");
     btn.textContent = "Meet " + a.name;
     btn.href = "contact.html?pet=" + encodeURIComponent(a.name);

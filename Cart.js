@@ -1,11 +1,12 @@
-/* PawForward cart. Include on every page (after script.js).
-   Flow: "Add to cart" -> drawer slides in -> "Checkout" -> checkout summary.
+/* PawForward cart. Include on every page after script.js (it uses toast() and paymentPicker()).
+   Flow: "Add to cart" -> toast with a Checkout button -> checkout summary drawer.
    Data is stored in localStorage for now; the back end replaces loadCart/saveCart later. */
 
 const CART_KEY = "pawforwardCart";
 const CURRENCY = "\u20B1";
 const FREE_SHIPPING_OVER = 1000;
 const SHIPPING_FEE = 80;
+const OPEN_DRAWER_ON_ADD = false;   // true = also slide the drawer open every time something is added
 
 const money = (n) => CURRENCY + n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 
@@ -28,7 +29,6 @@ function addToCart(item) {
     if (found) found.qty += 1; else cart.push({ ...item, qty: 1 });
     saveCart(cart);
 }
-
 function updateCartCount() {
     const count = totals(loadCart()).count;
     document.querySelectorAll("[data-cart]").forEach((a) => {
@@ -38,7 +38,18 @@ function updateCartCount() {
     });
 }
 
-/* ---------- Drawer ---------- */
+/* Free-shipping progress: used in the drawer and on the cart page */
+function shipText(t) {
+    return t.subtotal >= FREE_SHIPPING_OVER ? "You've unlocked free shipping!" : "Add " + money(FREE_SHIPPING_OVER - t.subtotal) + " more for free shipping";
+}
+const shipPercent = (t) => Math.min((t.subtotal / FREE_SHIPPING_OVER) * 100, 100);
+function meterHTML(t) {
+    const pct = shipPercent(t);
+    return '<div class="ship-meter' + (t.subtotal >= FREE_SHIPPING_OVER ? " unlocked" : "") + '"><p>' + shipText(t) + "</p>" +
+        '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '" aria-label="Free shipping progress"><div class="progress-fill" style="width:' + pct + '%"></div></div></div>';
+}
+
+/* ================================ Drawer ================================ */
 const overlay = document.createElement("div");
 overlay.className = "drawer-overlay";
 const drawer = document.createElement("aside");
@@ -50,6 +61,8 @@ drawer.innerHTML =
     '<div class="drawer-head"><h2></h2><button type="button" class="drawer-close" aria-label="Close cart">&times;</button></div>' +
     '<div class="drawer-body"></div><div class="drawer-foot"></div>';
 document.body.append(overlay, drawer);
+
+let drawerPay = null;
 
 function renderDrawer(mode) {
     const cart = loadCart(), t = totals(cart), summary = mode === "summary";
@@ -70,25 +83,21 @@ function renderDrawer(mode) {
         row.querySelector(".d-total").textContent = money(item.price * item.qty);
         body.appendChild(row);
     });
+    drawerPay = null;
+    if (summary && cart.length) { drawerPay = paymentPicker(); body.appendChild(drawerPay.el); }
 
     const foot = drawer.querySelector(".drawer-foot");
     foot.innerHTML =
-        '<div class="row"><span>Subtotal</span><span data-k="sub"></span></div>' +
+        meterHTML(t) +
+        '<div class="row"><span>Subtotal</span><span>' + money(t.subtotal) + "</span></div>" +
         (summary
-            ? '<div class="row"><span>Shipping</span><span data-k="ship"></span></div>' +
-              '<p class="summary-note" data-k="note"></p>' +
-              '<div class="row total"><span>Total</span><span data-k="total"></span></div>'
+            ? '<div class="row"><span>Shipping</span><span>' + (t.shipping ? money(t.shipping) : "Free") + "</span></div>" +
+              '<div class="row total"><span>Total</span><span>' + money(t.total) + "</span></div>"
             : "") +
         '<div class="drawer-actions"></div><p class="thanks" id="orderNote" role="status"></p>' +
         (!summary && !document.getElementById("cartList") ? '<a href="cart.html" class="drawer-link">View full cart</a>' : "");
-    const set = (k, v) => { const n = foot.querySelector('[data-k="' + k + '"]'); if (n) n.textContent = v; };
-    set("sub", money(t.subtotal));
-    set("ship", t.shipping ? money(t.shipping) : "Free");
-    set("total", money(t.total));
-    set("note", t.subtotal >= FREE_SHIPPING_OVER ? "Your order ships free." : "Add " + money(FREE_SHIPPING_OVER - t.subtotal) + " more for free shipping.");
 
-    const actions = foot.querySelector(".drawer-actions");
-    actions.innerHTML = summary
+    foot.querySelector(".drawer-actions").innerHTML = summary
         ? '<button type="button" class="btn btn-outline" data-act="close">Keep shopping</button><button type="button" class="btn" data-act="order">Place order</button>'
         : '<button type="button" class="btn btn-outline" data-act="close">Continue shopping</button><button type="button" class="btn" data-act="checkout">Checkout</button>';
 }
@@ -115,10 +124,12 @@ drawer.addEventListener("click", (e) => {
     if (act.dataset.act === "close") closeDrawer();
     if (act.dataset.act === "checkout") renderDrawer("summary");
     if (act.dataset.act === "order") {
+        if (drawerPay && !drawerPay.validate()) return;
         // TODO: send to your real payment flow once the back end exists
         const note = document.getElementById("orderNote");
-        note.textContent = "Placing orders isn't connected yet. It will work once the back end is built.";
+        note.textContent = "Demo checkout: no payment was taken. Paying by " + (drawerPay ? drawerPay.label() : "your chosen method") + " will work once the back end is built.";
         note.classList.add("show");
+        toast("Order received (demo)");
     }
 });
 
@@ -128,16 +139,31 @@ document.addEventListener("click", (e) => {
     if (!btn) return;
     e.preventDefault();
     addToCart({ id: btn.dataset.id, name: btn.dataset.name, price: parseFloat(btn.dataset.price), img: btn.dataset.img || "" });
-    openDrawer("added");
+    toast("Added to cart!", { action: { label: "Checkout", onClick: () => openDrawer("summary") } });
+    if (OPEN_DRAWER_ON_ADD) openDrawer("added");
 });
 
 updateCartCount();
 
-/* ---------- Cart page only ---------- */
+/* ============================== Cart page only ============================== */
 const listEl = document.getElementById("cartList");
 if (listEl) {
     const layout = document.getElementById("cartLayout");
     const emptyEl = document.getElementById("cartEmpty");
+
+    // Numbers glide to their new value, so changes feel live
+    function tween(el, to, text) {
+        const from = +el.dataset.v || 0;
+        el.dataset.v = to;
+        if (text !== undefined) { el.textContent = text; return; }
+        if (reduceMotion || from === to) { el.textContent = money(to); return; }
+        const start = performance.now();
+        (function tick(now) {
+            const p = Math.min((now - start) / 450, 1);
+            el.textContent = money(Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(tick);
+        })(start);
+    }
 
     function renderCart() {
         const cart = loadCart(), t = totals(cart);
@@ -164,8 +190,15 @@ if (listEl) {
             row.querySelector(".line-total").textContent = money(item.price * item.qty);
             listEl.appendChild(row);
         });
-        document.getElementById("barCount").textContent = t.count + (t.count === 1 ? " item" : " items");
-        document.getElementById("barSubtotal").textContent = money(t.subtotal);
+
+        tween(document.getElementById("barSubtotal"), t.subtotal);
+        tween(document.getElementById("barShipping"), t.shipping, t.shipping ? undefined : "Free");
+        tween(document.getElementById("barTotal"), t.total);
+
+        const meter = document.getElementById("cartMeter");
+        meter.classList.toggle("unlocked", t.subtotal >= FREE_SHIPPING_OVER);
+        document.getElementById("meterText").textContent = shipText(t);
+        document.getElementById("meterFill").style.width = shipPercent(t) + "%";
     }
 
     listEl.addEventListener("click", (e) => {
@@ -177,7 +210,7 @@ if (listEl) {
         if (!item) return;
         if (btn.dataset.act === "remove") {
             row.classList.add("removing");
-            setTimeout(() => { saveCart(cart.filter((i) => i.id !== item.id)); renderCart(); }, 300);
+            setTimeout(() => { saveCart(cart.filter((i) => i.id !== item.id)); renderCart(); toast("Removed from cart"); }, 300);
             return;
         }
         if (btn.dataset.act === "inc") item.qty += 1;

@@ -55,6 +55,7 @@
             </div>
         </div>
 
+        <div id="payMount"></div>
         <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
         <button type="button" class="donate-now" id="donateBtn">Donate now</button>
         <p class="thanks" id="thanks" role="status"></p>
@@ -70,6 +71,8 @@
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
     let selected = 250;
+    const pay = paymentPicker();
+    $("payMount").appendChild(pay.el);
 
     document.querySelectorAll(".amount-btn").forEach((b) => (b.textContent = fmt(+b.dataset.amount)));
     document.querySelector(".cur").textContent = CUR;
@@ -125,10 +128,12 @@
         const user = Auth.current();
         if (!user) { openAuth("Please sign in to donate."); return; }
         if (!(selected > 0)) { say("Choose or enter an amount to donate."); return; }
+        if (!pay.validate()) return;
         const before = Fund.raised();
         Fund.add(selected);
         render(before);
         say("Thank you, " + user.firstName + "! Your " + fmt(selected) + " gift moves us closer to our goal.");
+        toast("Thank you! " + fmt(selected) + " donated.");
         $("customAmount").value = "";
     });
 

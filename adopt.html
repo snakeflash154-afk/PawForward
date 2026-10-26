@@ -28,12 +28,39 @@
 
 <section class="container" style="padding-top:20px">
     <h2>Animals looking for a home</h2>
-    <p class="subtitle">Choose a filter or browse everyone.</p>
-    <div class="chips" id="chips" role="group" aria-label="Filter animals">
-        <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
-        <button type="button" class="chip" data-filter="Dog" aria-pressed="false">Dogs</button>
-        <button type="button" class="chip" data-filter="Cat" aria-pressed="false">Cats</button>
+    <p class="subtitle">Animals who have waited more than 90 days are marked <strong>Hidden Gem</strong> and shown first.</p>
+    <div class="filters" id="filters">
+        <div class="filter-group" data-group="type">
+            <span class="filter-label" id="fl-type">Type</span>
+            <div class="chips" role="group" aria-labelledby="fl-type">
+                <button type="button" class="chip" data-value="all" aria-pressed="true">All</button>
+                <button type="button" class="chip" data-value="Dog" aria-pressed="false">Dogs</button>
+                <button type="button" class="chip" data-value="Cat" aria-pressed="false">Cats</button>
+            </div>
+        </div>
+        <div class="filter-group" data-group="age">
+            <span class="filter-label" id="fl-age">Age group</span>
+            <div class="chips" role="group" aria-labelledby="fl-age">
+                <button type="button" class="chip" data-value="all" aria-pressed="true">All</button>
+                <button type="button" class="chip" data-value="young" aria-pressed="false">Puppy / Kitten</button>
+                <button type="button" class="chip" data-value="adult" aria-pressed="false">Adult</button>
+                <button type="button" class="chip" data-value="senior" aria-pressed="false">Senior</button>
+            </div>
+        </div>
+        <div class="filter-group" data-group="sex">
+            <span class="filter-label" id="fl-sex">Gender</span>
+            <div class="chips" role="group" aria-labelledby="fl-sex">
+                <button type="button" class="chip" data-value="all" aria-pressed="true">All</button>
+                <button type="button" class="chip" data-value="Male" aria-pressed="false">Male</button>
+                <button type="button" class="chip" data-value="Female" aria-pressed="false">Female</button>
+            </div>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="chip chip-gem" id="gemOnly" aria-pressed="false">&#9733; Hidden Gems only</button>
+            <button type="button" class="link-btn" id="clearFilters">Clear filters</button>
+        </div>
     </div>
+    <p class="result-count" id="resultCount" aria-live="polite"></p>
     <div class="animal-grid" id="animalGrid"></div>
 </section>
 
@@ -41,21 +68,5 @@
 <script src="core.js"></script>
 <script src="script.js"></script>
 <script src="cart.js"></script>
-<script>
-    const grid = document.getElementById("animalGrid");
-    function renderAnimals(filter) {
-        grid.innerHTML = "";
-        const list = ANIMALS.filter((a) => filter === "all" || a.type === filter);
-        list.forEach((a, i) => grid.appendChild(animalCard(a, i)));
-        if (!list.length) grid.innerHTML = '<p class="grid-empty">No animals in this group right now. Check back soon.</p>';
-    }
-    document.getElementById("chips").addEventListener("click", (e) => {
-        const chip = e.target.closest(".chip");
-        if (!chip) return;
-        document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === chip));
-        renderAnimals(chip.dataset.filter);
-    });
-    renderAnimals("all");
-</script>
 </body>
 </html>

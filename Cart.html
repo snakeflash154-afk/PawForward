@@ -21,16 +21,42 @@
 <section class="container">
     <div class="cart-wrap" id="cartLayout">
         <div class="cart-list" id="cartList"></div>
+        <div class="ship-meter" id="cartMeter">
+            <p id="meterText"></p>
+            <div class="progress" aria-label="Free shipping progress"><div class="progress-fill" id="meterFill"></div></div>
+        </div>
         <div class="cart-bar">
-            <div><span id="barCount"></span><strong id="barSubtotal"></strong></div>
+            <div class="bar-lines">
+                <div><span>Subtotal</span><b id="barSubtotal"></b></div>
+                <div><span>Shipping</span><b id="barShipping"></b></div>
+                <div class="bar-total"><span>Total</span><strong id="barTotal"></strong></div>
+            </div>
             <button type="button" class="donate-now" id="checkoutBtn">Checkout</button>
         </div>
     </div>
 
     <div class="cart-empty" id="cartEmpty" hidden>
-        <h2>Your cart is empty</h2>
-        <p>Find something for your pet and support our rescues at the same time.</p>
-        <a href="shop.html" class="btn">Browse the shop</a>
+        <svg class="pet-art" viewBox="0 0 200 170" role="img" aria-label="A friendly dog peeking out of an empty box">
+            <g class="paw" fill="#b63737" opacity=".28"><g transform="translate(22 26)"><ellipse cx="8" cy="11" rx="6" ry="5"/><circle cx="1" cy="5" r="2.6"/><circle cx="6" cy="1.5" r="2.6"/><circle cx="11" cy="1.5" r="2.6"/><circle cx="16" cy="5" r="2.6"/></g><g transform="translate(160 46) scale(.8)"><ellipse cx="8" cy="11" rx="6" ry="5"/><circle cx="1" cy="5" r="2.6"/><circle cx="6" cy="1.5" r="2.6"/><circle cx="11" cy="1.5" r="2.6"/><circle cx="16" cy="5" r="2.6"/></g></g>
+            <g class="dog">
+                <g class="ear-l"><ellipse cx="66" cy="62" rx="15" ry="26" fill="#8a5a2b" transform="rotate(18 66 62)"/></g>
+                <g class="ear-r"><ellipse cx="134" cy="62" rx="15" ry="26" fill="#8a5a2b" transform="rotate(-18 134 62)"/></g>
+                <circle cx="100" cy="78" r="40" fill="#d9a066"/>
+                <ellipse cx="100" cy="94" rx="20" ry="15" fill="#f3d8b6"/>
+                <circle cx="85" cy="72" r="5" fill="#2a1c1b"/><circle cx="115" cy="72" r="5" fill="#2a1c1b"/>
+                <circle cx="86.5" cy="70.5" r="1.6" fill="#fff"/><circle cx="116.5" cy="70.5" r="1.6" fill="#fff"/>
+                <ellipse cx="100" cy="88" rx="7" ry="5" fill="#2a1c1b"/>
+                <path d="M100 93v6M100 99q-6 6-12 1M100 99q6 6 12 1" stroke="#2a1c1b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M92 101q8 14 16 0z" fill="#f08a9b"/>
+            </g>
+            <path d="M40 118h120l-8 44h-104z" fill="#c98f5a"/><rect x="36" y="112" width="128" height="14" rx="4" fill="#b87a45"/><rect x="88" y="136" width="24" height="10" rx="3" fill="#f3d8b6"/>
+        </svg>
+        <h2>Your cart is feeling lonely</h2>
+        <p>Nothing here yet. Grab something for your pet, or meet an animal who needs a home.</p>
+        <div class="cta-actions">
+            <a href="shop.html" class="btn">Browse the shop</a>
+            <a href="adopt.html" class="btn btn-outline">Meet our animals</a>
+        </div>
     </div>
 </section>
 <div id="footer-placeholder"></div>
