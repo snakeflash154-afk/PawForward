@@ -1,331 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PawForward | Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> <!-- Inherits all your global styles & themes -->
-    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ================= Admin Specific Styles ================= */
-        body { background: var(--bg); overflow-x: hidden; }
-        
-        .admin-layout { display: flex; min-height: 100vh; }
-        
-        /* --- Sidebar --- */
+        :root {
+            /* Palette */
+            --red: #b63737;
+            --red-dark: #902424;
+            --gold: #d9a323;
+            --cream: #fdfaf5;
+            --ink: #2d2424;
+            --muted: #7a6e6e;
+            --line: rgba(182, 55, 55, 0.1);
+            
+            /* Glassmorphism / Claymorphism Base */
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-blur: blur(12px);
+            --clay-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.8);
+            --clay-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+            
+            --bg: var(--cream);
+            --surface: #ffffff;
+            --field: #f3eee7;
+            --blush: rgba(182, 55, 55, 0.05);
+            --primary-glow: rgba(182, 55, 55, 0.2);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #1a1616;
+            --surface: #251f1f;
+            --ink: #fdfaf5;
+            --muted: #b5a4a4;
+            --field: #2d2424;
+            --glass-bg: rgba(37, 31, 31, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --clay-shadow: 8px 8px 20px rgba(0, 0, 0, 0.3), -4px -4px 15px rgba(255, 255, 255, 0.02);
+            --clay-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.2), inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+            --line: rgba(255, 255, 255, 0.05);
+            --blush: rgba(182, 55, 55, 0.15);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(182, 55, 55, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(217, 163, 35, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Layout Structure */
+        .admin-layout {
+            display: flex;
+            min-height: 100dvh;
+        }
+
+        /* Sidebar */
         .admin-sidebar {
             width: 280px;
-            background: var(--surface);
-            border-right: 1px solid var(--line);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            padding: 24px 20px;
+            padding: 32px 20px;
             position: fixed;
             top: 0; bottom: 0; left: 0;
-            z-index: 100;
-            transition: transform 0.3s var(--ease);
+            z-index: 1000;
+            transition: var(--transition);
         }
-        
-        .admin-brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; margin-bottom: 40px; padding-left: 12px; }
-        .admin-brand svg { width: 28px; height: 28px; color: var(--red); }
-        
-        .admin-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .admin-nav a {
-            display: flex; align-items: center; gap: 14px; padding: 14px 18px;
-            text-decoration: none; color: var(--muted); font-weight: 700; font-size: 14px;
-            border-radius: 14px; transition: all 0.25s ease;
-        }
-        .admin-nav a svg { width: 20px; height: 20px; opacity: 0.7; transition: opacity 0.2s; }
-        .admin-nav a:hover { background: var(--blush); color: var(--red-text); }
-        .admin-nav a:hover svg { opacity: 1; color: var(--red); }
-        
-        .admin-nav a.active {
-            background: linear-gradient(145deg, var(--clay-top), var(--clay-bot));
-            box-shadow: 4px 5px 10px var(--clay-shadow), -3px -3px 8px var(--clay-hi);
-            color: var(--red-text);
-        }
-        .admin-nav a.active svg { opacity: 1; color: var(--red); }
 
-        .admin-logout { margin-top: auto; color: var(--bad); }
-        
-        /* --- Main Content Area --- */
-        .admin-main { flex: 1; margin-left: 280px; display: flex; flex-direction: column; min-height: 100vh; }
-        
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--red);
+            text-decoration: none;
+            margin-bottom: 48px;
+            padding-left: 12px;
+        }
+
+        .admin-brand svg { width: 36px; height: 36px; filter: drop-shadow(0 4px 8px var(--primary-glow)); }
+
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .admin-nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 16px;
+            transition: var(--transition);
+        }
+
+        .admin-nav a svg { width: 20px; height: 20px; stroke-width: 2.5px; transition: var(--transition); }
+
+        .admin-nav a:hover {
+            background: var(--blush);
+            color: var(--red);
+            transform: translateX(5px);
+        }
+
+        .admin-nav a.active {
+            background: var(--surface);
+            box-shadow: var(--clay-shadow);
+            color: var(--red);
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--line);
+            margin: 20px 0;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            color: var(--red) !important;
+        }
+
+        /* Main Content */
+        .admin-main {
+            flex: 1;
+            margin-left: 280px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
         /* Header */
         .admin-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 40px; background: var(--surface); border-bottom: 1px solid var(--line);
-            position: sticky; top: 0; z-index: 90;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 900;
         }
-        .header-search input {
-            padding: 10px 16px; border-radius: 999px; border: 2px solid var(--field);
-            background: var(--bg); font-family: inherit; font-size: 14px; color: var(--ink);
-            width: 300px; transition: border-color 0.25s;
-        }
-        .header-search input:focus { outline: none; border-color: var(--red); }
-        
-        .admin-header-right { display: flex; align-items: center; gap: 20px; }
-        .admin-profile { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
-        .admin-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); }
 
-        /* Dashboard Content */
-        .admin-content { padding: 40px; flex: 1; }
-        .page-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title h1 { font-size: 28px; margin: 0; }
-        
-        /* Claymorphism Stat Cards with Transitions */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px; }
-        .admin-stat-card {
-            padding: 24px; border-radius: 24px;
-            background: linear-gradient(145deg, var(--clay-top), var(--clay-bot));
-            box-shadow: 6px 8px 18px var(--clay-shadow), -5px -5px 14px var(--clay-hi), inset 1px 1px 4px var(--clay-hi);
-            display: flex; align-items: center; gap: 20px;
+        .header-search {
+            flex: 0 1 400px;
+            position: relative;
+        }
+
+        .header-search input {
+            width: 100%;
+            padding: 12px 20px;
+            padding-left: 45px;
+            border-radius: 999px;
+            border: none;
+            background: var(--field);
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--ink);
+            box-shadow: var(--clay-inset);
+            transition: var(--transition);
+        }
+
+        .header-search input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--red), var(--clay-inset);
+        }
+
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .theme-toggle {
+            background: var(--field);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.3s cubic-bezier(.2, .7, .2, 1), box-shadow 0.3s ease;
+            display: grid;
+            place-items: center;
+            color: var(--ink);
+            box-shadow: var(--clay-shadow);
+            transition: var(--transition);
         }
-        .admin-stat-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 10px 14px 28px var(--clay-shadow), -8px -8px 20px var(--clay-hi);
+
+        .theme-toggle:active { transform: scale(0.9); }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 14px;
         }
+
+        .admin-profile img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--red);
+            padding: 2px;
+            background: var(--surface);
+            object-fit: cover;
+        }
+
+        /* Content Grid */
+        .admin-content {
+            padding: 40px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            min-height: 44px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: white;
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px var(--primary-glow);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            padding: 30px;
+            background: var(--surface);
+            border-radius: 28px;
+            box-shadow: var(--clay-shadow);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover { transform: translateY(-5px); }
 
         .stat-icon {
-            width: 56px; height: 56px; display: grid; place-items: center;
-            border-radius: 50%; color: white; font-size: 24px;
-            background: linear-gradient(145deg, #c94b4b, #a52e2e);
-            box-shadow: 4px 5px 10px rgba(182, 55, 55, .3);
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            display: grid;
+            place-items: center;
+            font-size: 28px;
+            background: var(--field);
+            box-shadow: var(--clay-inset);
         }
-        .admin-stat-card.good .stat-icon { background: linear-gradient(145deg, #4caf50, #2e7d32); box-shadow: 4px 5px 10px rgba(76, 175, 80, .3); }
-        .admin-stat-card.gem .stat-icon { background: linear-gradient(145deg, #f8d26f, #d9a323); box-shadow: 4px 5px 10px rgba(217, 163, 35, .3); color: #3a2600; }
-        
-        .stat-info span { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-info strong { font-size: 28px; color: var(--ink); line-height: 1; }
 
-        /* Data Tables */
-        .table-container {
-            background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
-            padding: 24px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        .stat-info span {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 4px;
         }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .table-header h2 { font-size: 18px; margin: 0; }
-        
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 14px 16px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 2px solid var(--line); }
-        td { padding: 16px; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--line); }
-        tr:last-child td { border-bottom: 0; }
-        
+
+        .stat-info strong {
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        /* Table */
+        .card-container {
+            background: var(--surface);
+            border-radius: 28px;
+            box-shadow: var(--clay-shadow);
+            border: 1px solid var(--glass-border);
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            width: 100%;
+            border-radius: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 600px;
+        }
+
+        th {
+            padding: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--line);
+        }
+
+        td {
+            padding: 20px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--line);
+        }
+
+        tr:hover td { background: var(--blush); }
+
         .status-pill {
-            display: inline-block; padding: 6px 12px; border-radius: 999px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
         }
-        .status-pill.pending { background: #fff0c8; color: #b07d00; }
-        .status-pill.approved { background: #dcfce7; color: #166534; }
 
-        /* Modal Styles */
+        .status-pending { background: #fff8e6; color: #b45d00; }
+        .status-approved { background: #e6fcf5; color: #087f5b; }
+
+        /* Modal */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; place-items: center; z-index: 1000;
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 36, 36, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            place-items: center;
+            z-index: 2000;
+            padding: 20px;
         }
+
         .modal-overlay.active { display: grid; }
+
         .modal-card {
-            background: var(--surface); padding: 30px; border-radius: 24px;
-            width: 100%; max-width: 450px; border: 1px solid var(--line);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .modal-card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; color: var(--ink); }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--muted); }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-card h2 { margin: 0 0 30px; font-weight: 800; }
+
+        .form-group { margin-bottom: 24px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
         .form-group input, .form-group select {
-            width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid var(--field);
-            background: var(--bg); font-family: inherit; font-size: 14px; color: var(--ink); box-sizing: border-box;
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: none;
+            background: var(--field);
+            font-family: inherit;
+            color: var(--ink);
+            box-shadow: var(--clay-inset);
+            font-size: 15px;
         }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--red); }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-ghost { background: transparent; color: var(--muted); }
+        .btn-ghost:hover { color: var(--ink); background: var(--field); }
 
         /* Mobile Adjustments */
-        .menu-toggle-admin { display: none; background: none; border: 0; color: var(--ink); font-size: 28px; cursor: pointer; }
-        @media (max-width: 900px) {
+        .mobile-header-actions { display: none; }
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--ink);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        @media (max-width: 992px) {
             .admin-sidebar { transform: translateX(-100%); }
-            .admin-sidebar.open { transform: translateX(0); }
+            .admin-sidebar.open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
             .admin-main { margin-left: 0; }
-            .menu-toggle-admin { display: block; }
+            .menu-toggle { display: block; }
             .header-search { display: none; }
-            .admin-header { padding: 16px 24px; }
+            .admin-header { padding: 0 20px; }
             .admin-content { padding: 24px; }
+        }
+
+        @media (max-width: 600px) {
+            .page-title { flex-direction: column; align-items: flex-start; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
 <body>
 
 <div class="admin-layout">
-    
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <a href="index.html" class="admin-brand">
             <svg viewBox="0 0 64 64" fill="currentColor">
-                <g fill="currentColor">
-                    <ellipse cx="32" cy="42" rx="13" ry="11"/>
-                    <circle cx="15" cy="28" r="6"/>
-                    <circle cx="27" cy="17" r="6"/>
-                    <circle cx="41" cy="17" r="6"/>
-                    <circle cx="53" cy="28" r="6"/>
-                </g>
+                <ellipse cx="32" cy="42" rx="13" ry="11"/>
+                <circle cx="15" cy="28" r="6"/>
+                <circle cx="27" cy="17" r="6"/>
+                <circle cx="41" cy="17" r="6"/>
+                <circle cx="53" cy="28" r="6"/>
             </svg>
-            PawForward
+            <span>PawForward</span>
         </a>
         
         <nav class="admin-nav">
             <a href="#" class="active">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 Dashboard
             </a>
             <a href="adopt.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 Animals
             </a>
-            <a href="index.html" style="margin-top: 14px; border-top: 1px solid var(--line); border-radius: 0; padding-top: 24px;">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Website
+            <div class="nav-divider"></div>
+            <a href="index.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Main Website
+            </a>
+            <a href="index.html" class="logout-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Sign Out
             </a>
         </nav>
-        
-        <a href="#" class="admin-nav admin-logout logout-btn" style="margin-top:auto; flex:none;">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            Sign Out
-        </a>
     </aside>
 
-    <!-- Main Content -->
     <main class="admin-main">
+        <!-- Header -->
         <header class="admin-header">
-            <button class="menu-toggle-admin" onclick="document.getElementById('adminSidebar').classList.toggle('open')">☰</button>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">☰</button>
             <div class="header-search">
-                <input type="text" placeholder="Search animals, applications...">
+                <input type="text" placeholder="Search applications, pets, logs...">
             </div>
             <div class="admin-header-right">
-                <button class="theme-toggle" aria-label="Toggle dark mode" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">
-                    <svg class="sun" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <svg class="moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle Dark Mode">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 </button>
                 <div class="admin-profile">
-                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=b63737&color=fff" alt="Admin">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=b63737&color=fff" alt="Admin Profile">
                     <span>Admin User</span>
                 </div>
             </div>
         </header>
 
+        <!-- Main Dashboard Content -->
         <div class="admin-content">
             <div class="page-title">
                 <h1>Dashboard Overview</h1>
-                <button class="btn" id="openModalBtn" style="border-radius: 999px; cursor: pointer;">+ Add New Animal</button>
+                <button class="btn btn-primary" id="openModalBtn">
+                    <span>+ Add New Pet</span>
+                </button>
             </div>
 
-            <!-- Stats Row -->
+            <!-- Stats -->
             <div class="stats-grid">
-                <div class="admin-stat-card">
+                <div class="stat-card">
                     <div class="stat-icon">🐾</div>
                     <div class="stat-info">
-                        <span>Animals in Shelter</span>
+                        <span>Total Rescues</span>
                         <strong>143</strong>
                     </div>
                 </div>
-                <div class="admin-stat-card good">
+                <div class="stat-card">
                     <div class="stat-icon">🏠</div>
                     <div class="stat-info">
-                        <span>Adopted This Month</span>
+                        <span>Monthly Adoptions</span>
                         <strong>38</strong>
                     </div>
                 </div>
-                <div class="admin-stat-card gem">
-                    <div class="stat-icon">₱</div>
+                <div class="stat-card">
+                    <div class="stat-icon">💝</div>
                     <div class="stat-info">
-                        <span>Donations (30 Days)</span>
+                        <span>Recent Donations</span>
                         <strong>₱45,200</strong>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Applications Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2>Recent Adoption Applications</h2>
+            <!-- Recent Applications -->
+            <div class="card-container">
+                <div class="card-header">
+                    <h2>Pending Applications</h2>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Applicant Name</th>
-                            <th>Animal Requested</th>
-                            <th>Date Submitted</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Maria Santos</td>
-                            <td>Bantay (Dog)</td>
-                            <td>Oct 24, 2026</td>
-                            <td><span class="status-pill pending">Pending Review</span></td>
-                        </tr>
-                        <tr>
-                            <td>John Cruz</td>
-                            <td>Mingming (Cat)</td>
-                            <td>Oct 22, 2026</td>
-                            <td><span class="status-pill approved">Approved</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Pet Requested</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>Bantay (Dog)</td>
+                                <td>Oct 24, 2026</td>
+                                <td><span class="status-pill status-pending">Pending Review</span></td>
+                            </tr>
+                            <tr>
+                                <td>John Cruz</td>
+                                <td>Mingming (Cat)</td>
+                                <td>Oct 22, 2026</td>
+                                <td><span class="status-pill status-approved">Approved</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 </div>
 
-<!-- Add Animal Modal Popup -->
+<!-- Add Pet Modal -->
 <div class="modal-overlay" id="animalModal">
     <div class="modal-card">
-        <h2>Add New Rescue Pet</h2>
+        <h2>Register Rescue Pet</h2>
         <form id="addAnimalForm">
             <div class="form-group">
                 <label for="petName">Pet Name</label>
-                <input type="text" id="petName" required placeholder="e.g. Brownie">
+                <input type="text" id="petName" required placeholder="e.g. Luna">
             </div>
             <div class="form-group">
-                <label for="petType">Type</label>
+                <label for="petType">Species</label>
                 <select id="petType">
                     <option value="Dog">Dog</option>
                     <option value="Cat">Cat</option>
+                    <option value="Other">Other</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="petStatus">Status</label>
+                <label for="petStatus">Availability</label>
                 <select id="petStatus">
-                    <option value="Available">Available</option>
-                    <option value="Pending">Pending Adoption</option>
+                    <option value="Available">Available for Adoption</option>
+                    <option value="Pending">Pending Review</option>
+                    <option value="Medical">Under Medical Care</option>
                 </select>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn" id="closeModalBtn" style="background: var(--field); color: var(--ink);">Cancel</button>
-                <button type="submit" class="btn" id="savePetBtn">Save to Cloud</button>
+                <button type="button" class="btn btn-ghost" id="closeModalBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="savePetBtn">Add to Registry</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Firebase Cloud Integration Module -->
 <script type="module">
+    // --- Dashboard UI Logic ---
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('adminSidebar');
+    const modal = document.getElementById('animalModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const form = document.getElementById('addAnimalForm');
+
+    // Theme Toggle
+    themeBtn.addEventListener('click', () => {
+        const current = html.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('pawforward-theme', next);
+    });
+
+    // Check Local Storage for Theme
+    if (localStorage.getItem('pawforward-theme') === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    }
+
+    // Mobile Sidebar Toggle
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    });
+
+    // Modal Controls
+    openBtn.addEventListener('click', () => modal.classList.add('active'));
+    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+    // --- Firebase Integration ---
+    // Note: requires firebase-config.js in same directory
     import { db } from "./firebase-config.js";
     import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Modal Control Elements
-    const modal = document.getElementById("animalModal");
-    const openBtn = document.getElementById("openModalBtn");
-    const closeBtn = document.getElementById("closeModalBtn");
-    const form = document.getElementById("addAnimalForm");
-
-    openBtn.addEventListener("click", () => modal.classList.add("active"));
-    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
-
-    // Handle Form Submit & Send to Firestore Cloud
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -335,10 +701,9 @@
         const saveBtn = document.getElementById("savePetBtn");
 
         try {
-            saveBtn.textContent = "Saving...";
+            saveBtn.textContent = "Processing...";
             saveBtn.disabled = true;
 
-            // Push directly to Firestore 'animals' collection
             await addDoc(collection(db, "animals"), {
                 name: name,
                 type: type,
@@ -346,16 +711,15 @@
                 createdAt: new Date()
             });
 
-            alert(`Successfully added ${name} to the cloud database!`);
             form.reset();
             modal.classList.remove("active");
-            
-            // Redirect to adopt page to see the new animal live
-            window.location.href = "adopt.html";
+            // Soft refresh or redirect
+            window.location.reload(); 
         } catch (error) {
-            console.error("Error adding document: ", error);
-            alert("Failed to save pet to cloud. Check console.");
-            saveBtn.textContent = "Save to Cloud";
+            console.error("Firebase Error:", error);
+            alert("Database connection failed. Please check your Firebase configuration.");
+        } finally {
+            saveBtn.textContent = "Add to Registry";
             saveBtn.disabled = false;
         }
     });
