@@ -1,69 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PawForward Account</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="popup.css">
-    <script src="../core.js"></script>
-    <script src="popup.js" defer></script>
-</head>
-<body>
-    <div class="popup-overlay" id="overlay">
-        <div class="popup-container" role="dialog" aria-modal="true" aria-labelledby="popTitle">
-            <button type="button" class="close-button" id="closeBtn" aria-label="Close">&times;</button>
+<!-- Modern Split-Screen Modal Overlay -->
+<div class="split-popup-overlay" id="overlay" style="display: none;">
+    <div class="split-popup-container" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+        
+        <!-- Close Button -->
+        <button type="button" class="close-modal-btn" id="closeBtn" aria-label="Close">&times;</button>
 
+        <!-- Left Side: Visual/Branding -->
+        <div class="auth-banner">
+            <div class="banner-content">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
+                        <path d="M12 2c-5.33 0-8 4.5-8 8.25 0 2.25 1.5 4.75 3.5 4.75.5 0 1-.25 1.5-.75.75-.75 2-1.5 3-1.5s2.25.75 3 1.5c.5.5 1 .75 1.5.75 2 0 3.5-2.5 3.5-4.75C20 6.5 17.33 2 12 2zm-5 13.5c-1.5 0-3 1.5-3 3.5 0 2.5 2 4.5 4 4.5s4-2 4-4.5-1.5-3.5-5-3.5zm10 0c-3.5 0-5 1-5 3.5 0 2.5 2 4.5 4 4.5s4-2 4-4.5-1.5-3.5-3-3.5z"/>
+                    </svg>
+                    PawForward
+                </div>
+                <h2>Give every paw<br>a brighter future.</h2>
+                <p style="margin-top: 12px; font-size: 1.05rem; opacity: 0.9;">Join our community of rescuers, fosters, and animal lovers.</p>
+            </div>
+        </div>
+
+        <!-- Right Side: Forms -->
+        <div class="auth-panel">
+            
             <p class="notice" id="notice" role="status" hidden></p>
 
-            <section id="signInSection">
-                <h2 id="popTitle">Welcome to PawForward</h2>
-                <p>Sign in to your account</p>
-                <form id="signInForm" novalidate>
-                    <label for="email">Email address</label>
-                    <input type="email" id="email" placeholder="Enter your email" autocomplete="email" required>
+            <!-- SIGN IN SECTION -->
+            <section id="signInSection" class="form-container active">
+                <div class="form-header">
+                    <h3 id="popTitle">Welcome Back</h3>
+                    <p>Sign in to your PawForward account</p>
+                </div>
 
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
+                <form id="signInForm" novalidate>
+                    <div class="floating-group">
+                        <input type="email" id="email" placeholder=" " autocomplete="email" required>
+                        <label for="email">Email address</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <input type="password" id="password" placeholder=" " autocomplete="current-password" required>
+                        <label for="password">Password</label>
+                        <button type="button" class="toggle-password" aria-label="Show password">👁️</button>
+                    </div>
 
                     <p class="form-error" id="signInError" role="alert" hidden></p>
-                    <button type="submit">Sign in</button>
+                    <button type="submit" class="submit-btn">Sign in</button>
                 </form>
-                <p class="switch">Don't have an account? <a href="#" id="showSignUp">Sign up</a></p>
+                
+                <p class="switch-form">Don't have an account? <a href="#" id="showSignUp">Sign up</a></p>
             </section>
 
-            <section id="signUpSection" hidden>
-                <h2>Create an account</h2>
-                <p>Join the PawForward community</p>
+            <!-- SIGN UP SECTION -->
+            <section id="signUpSection" class="form-container" hidden>
+                <div class="form-header">
+                    <h3>Create an account</h3>
+                    <p>Join the PawForward community</p>
+                </div>
+
                 <form id="signUpForm" novalidate>
-                    <label for="fName">First name</label>
-                    <input type="text" id="fName" placeholder="Enter your first name" autocomplete="given-name" required>
+                    <div class="input-row">
+                        <div class="floating-group">
+                            <input type="text" id="fName" placeholder=" " autocomplete="given-name" required>
+                            <label for="fName">First name</label>
+                        </div>
+                        <div class="floating-group">
+                            <input type="text" id="lName" placeholder=" " autocomplete="family-name" required>
+                            <label for="lName">Last name</label>
+                        </div>
+                    </div>
 
-                    <label for="lName">Last name</label>
-                    <input type="text" id="lName" placeholder="Enter your last name" autocomplete="family-name" required>
+                    <div class="input-row">
+                        <div class="floating-group">
+                            <input type="date" id="dob" autocomplete="bday" required>
+                            <label for="dob" class="active-label">Date of birth</label>
+                        </div>
+                        <div class="floating-group">
+                            <input type="text" id="city" placeholder=" " autocomplete="address-level2" required>
+                            <label for="city">City</label>
+                        </div>
+                    </div>
 
-                    <label for="dob">Date of birth</label>
-                    <input type="date" id="dob" autocomplete="bday" required>
+                    <div class="floating-group">
+                        <input type="email" id="signUpEmail" placeholder=" " autocomplete="email" required>
+                        <label for="signUpEmail">Email address</label>
+                    </div>
 
-                    <label for="city">City</label>
-                    <input type="text" id="city" placeholder="Enter your city" autocomplete="address-level2" required>
+                    <div class="floating-group">
+                        <input type="password" id="signUpPassword" placeholder=" " autocomplete="new-password" required>
+                        <label for="signUpPassword">Password (8+ chars)</label>
+                        <button type="button" class="toggle-password" aria-label="Show password">👁️</button>
+                    </div>
 
-                    <label for="signUpEmail">Email address</label>
-                    <input type="email" id="signUpEmail" placeholder="Enter your email" autocomplete="email" required>
-
-                    <label for="signUpPassword">Password</label>
-                    <input type="password" id="signUpPassword" placeholder="At least 8 characters" autocomplete="new-password" required>
-
-                    <label for="confirmPassword">Confirm password</label>
-                    <input type="password" id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required>
+                    <div class="floating-group">
+                        <input type="password" id="confirmPassword" placeholder=" " autocomplete="new-password" required>
+                        <label for="confirmPassword">Confirm password</label>
+                        <button type="button" class="toggle-password" aria-label="Show password">👁️</button>
+                    </div>
 
                     <p class="form-error" id="signUpError" role="alert" hidden></p>
-                    <button type="submit">Create account</button>
+                    <button type="submit" class="submit-btn">Create account</button>
                 </form>
-                <p class="switch">Already have an account? <a href="#" id="showSignIn">Sign in</a></p>
+                
+                <p class="switch-form">Already have an account? <a href="#" id="showSignIn">Sign in</a></p>
             </section>
         </div>
     </div>
-</body>
-</html>
+</div>

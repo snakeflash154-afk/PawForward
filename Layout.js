@@ -2,6 +2,8 @@
    Load right after <div id="header-mount"></div> at the top of <body>.
    Edit LEFT / RIGHT to change the nav on every page. */
 (function () {
+    const REGISTRATION = "Registered non-profit. Registration no. 0000-000000 (replace with yours)";
+
     /* ---------- Theme (applied immediately, so there is no flash) ---------- */
     let saved = null;
     try { saved = localStorage.getItem("pawforwardTheme"); } catch (e) {}
@@ -9,7 +11,8 @@
     document.documentElement.dataset.theme = dark ? "dark" : "light";
 
     /* ---------- Header ---------- */
-    const LEFT  = [["Home", "index.html"], ["About Us", "about.html"], ["Adopt", "adopt.html"]];
+    // ADDED "Community" to the LEFT array here:
+    const LEFT  = [["Home", "index.html"], ["About Us", "about.html"], ["Adopt", "adopt.html"], ["Community", "community.html"]];
     const RIGHT = [["Donate", "donate.html"], ["Shop", "shop.html"], ["Contact Us", "contact.html"]];
     const page = location.pathname.split("/").pop() || "index.html";
     const list = (items) => items.map(([label, href]) =>
@@ -30,6 +33,7 @@
             '<nav id="mainNav" aria-label="Main">' +
                 "<ul>" + list(LEFT) + "</ul>" +
                 "<ul>" + list(RIGHT) +
+                    '<li class="mobile-only" id="mobileAccount" hidden><a href="account.html">My account</a></li>' +
                     '<li class="mobile-only"><a href="cart.html" data-cart>Cart</a></li>' +
                     '<li class="mobile-only"><button type="button" class="linklike" data-theme-toggle>Switch theme</button></li>' +
                 "</ul>" +
@@ -37,50 +41,67 @@
             '<div class="header-right">' +
                 '<button type="button" class="header-button theme-toggle" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="' + dark + '">' + moon + sun + "</button>" +
                 '<a href="cart.html" class="header-button cart-link" data-cart aria-label="Cart">' + cartIcon + '<span class="cart-badge" hidden>0</span></a>' +
-                '<span class="greeting" id="greeting" hidden></span>' +
+                '<a href="account.html" class="avatar" id="accountLink" aria-label="My account" hidden></a>' +
                 '<button type="button" class="header-button solid" id="openPopup">Sign In</button>' +
                 '<button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>' +
             "</div>" +
             '<a href="index.html" class="logo-badge" aria-label="PawForward home"><img src="images/logo.png" alt="PawForward logo" onerror="this.onerror=null;this.src=PAW"></a>' +
         '</div><div class="scroll-progress" id="scrollProgress"></div></header>';
 
-    /* ---------- Sign-in / sign-up dialog (native <dialog>: focus trap, Esc, screen-reader modal) ---------- */
+    /* ---------- Sign-in dialog: native <dialog> with several views ---------- */
     const req = '<span class="req" aria-hidden="true">*</span>';
-    const field = (id, label, type, ph, ac) =>
+    const field = (id, label, type, ph, ac, hint, extra) =>
         '<div class="field"><label for="' + id + '">' + label + req + "</label>" +
-        '<input type="' + type + '" id="' + id + '"' + (ph ? ' placeholder="' + ph + '"' : "") + (ac ? ' autocomplete="' + ac + '"' : "") +
-        ' required aria-required="true" aria-describedby="' + id + '-msg"><small class="field-msg" id="' + id + '-msg"></small></div>';
+        '<input type="' + type + '" id="' + id + '"' + (ph ? ' placeholder="' + ph + '"' : "") + (ac ? ' autocomplete="' + ac + '"' : "") + (extra || "") +
+        ' required aria-required="true" aria-describedby="' + id + '-msg"><small class="field-msg" id="' + id + '-msg"></small>' +
+        (hint ? '<small class="hint">' + hint + "</small>" : "") + "</div>";
+    const note = '<p class="req-note">' + req + " Required</p>";
+    const err = (id) => '<p class="form-error" id="' + id + '" role="alert" hidden></p>';
+    const back = '<p class="switch"><a href="#" data-view-link="in">Back to sign in</a></p>';
+    const alts =
+        '<div class="or"><span>or</span></div><div class="alt-actions">' +
+            '<button type="button" class="alt-btn" data-social="Google"><i class="g">G</i>Continue with Google</button>' +
+            '<button type="button" class="alt-btn" data-social="Facebook"><i class="f">f</i>Continue with Facebook</button>' +
+        "</div>";
 
     const dlg = document.createElement("dialog");
     dlg.id = "authDialog";
     dlg.className = "auth";
     dlg.setAttribute("aria-labelledby", "authTitle");
     dlg.innerHTML =
-        '<div class="dlg-inner"><button type="button" class="dlg-close" id="authClose" aria-label="Close dialog">&times;</button>' +
+        '<div class="dlg-inner">' +
+        '<aside class="dlg-art" aria-hidden="true"><div><p class="art-title">Every animal deserves a home</p><p class="art-sub">An account lets you donate, save your favorite animals, and follow your adoption inquiries.</p></div></aside>' +
+        '<div class="dlg-main"><button type="button" class="dlg-close" id="authClose" aria-label="Close dialog">&times;</button>' +
         '<p class="notice" id="authNotice" role="status" hidden></p>' +
 
-        '<section id="signInSection"><h2 id="authTitle">Welcome to PawForward</h2><p class="sub">Sign in to your account</p>' +
-        '<p class="req-note">' + req + " Required</p>" +
+        '<section data-view="in" id="signInSection"><h2 id="authTitle">Welcome back</h2><p class="sub">Sign in to your account</p>' + note +
         '<form id="signInForm" novalidate>' +
             field("email", "Email address", "email", "Enter your email", "email") +
             field("password", "Password", "password", "Enter your password", "current-password") +
-            '<p class="form-error" id="signInError" role="alert" hidden></p>' +
+            '<p class="forgot"><a href="#" data-view-link="forgot">Forgot password?</a></p>' + err("signInError") +
             '<button type="submit">Sign in</button></form>' +
-        '<p class="switch">Don\'t have an account? <a href="#" id="showSignUp">Sign up</a></p></section>' +
+        '<div class="or"><span>or</span></div><div class="alt-actions"><button type="button" class="alt-btn" data-view-link="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>Email me a sign-in code</button>' +
+        '<button type="button" class="alt-btn" data-social="Google"><i class="g">G</i>Continue with Google</button>' +
+        '<button type="button" class="alt-btn" data-social="Facebook"><i class="f">f</i>Continue with Facebook</button></div>' +
+        '<p class="switch">New here? <a href="#" data-view-link="up">Create an account</a></p></section>' +
 
-        '<section id="signUpSection" hidden><h2>Create an account</h2><p class="sub">Join the PawForward community</p>' +
-        '<p class="req-note">' + req + " Required</p>" +
+        '<section data-view="up" id="signUpSection" hidden><h2 id="upTitle">Create your account</h2><p class="sub">It only takes a moment</p>' + note +
         '<form id="signUpForm" novalidate>' +
-            field("fName", "First name", "text", "Enter your first name", "given-name") +
-            field("lName", "Last name", "text", "Enter your last name", "family-name") +
-            field("dob", "Date of birth", "date", "", "bday") +
-            field("city", "City", "text", "Enter your city", "address-level2") +
             field("signUpEmail", "Email address", "email", "Enter your email", "email") +
-            field("signUpPassword", "Password", "password", "At least 8 characters", "new-password") +
-            field("confirmPassword", "Confirm password", "password", "Re-enter your password", "new-password") +
-            '<p class="form-error" id="signUpError" role="alert" hidden></p>' +
-            '<button type="submit">Create account</button></form>' +
-        '<p class="switch">Already have an account? <a href="#" id="showSignIn">Sign in</a></p></section></div>';
+            field("signUpPassword", "Password", "password", "Create a password", "new-password", "At least 8 characters") + err("signUpError") +
+            '<button type="submit">Create account</button></form>' + alts +
+        '<p class="switch">Already have an account? <a href="#" data-view-link="in">Sign in</a></p></section>' +
+
+        '<section data-view="forgot" id="forgotSection" hidden><h2 id="forgotTitle">Forgot your password?</h2><p class="sub">Enter your email and we\'ll help you reset it.</p>' + note +
+        '<form id="forgotForm" novalidate>' + field("fgEmail", "Email address", "email", "Enter your email", "email") + '<button type="submit">Send reset link</button></form>' +
+        '<p class="notice" id="forgotMsg" role="status" hidden></p>' +
+        '<form id="resetForm" novalidate hidden><p class="demo-note">Demo mode: emails are not sent yet, so you can choose a new password right here.</p>' +
+            field("rsPassword", "New password", "password", "At least 8 characters", "new-password", "At least 8 characters") + '<button type="submit">Save new password</button></form>' + back + "</section>" +
+
+        '<section data-view="code" id="codeSection" hidden><h2 id="codeTitle">Sign in with a code</h2><p class="sub">We\'ll send a 6-digit code to your email. No password needed.</p>' + note +
+        '<form id="codeForm" novalidate>' + field("cdEmail", "Email address", "email", "Enter your email", "email") + err("codeError") + '<button type="submit">Send code</button></form>' +
+        '<form id="codeVerify" novalidate hidden><p class="notice" id="codeHint" role="status"></p>' + field("cdCode", "6-digit code", "text", "123456", "one-time-code", "", ' inputmode="numeric" maxlength="6"') + err("verifyError") + '<button type="submit">Sign in</button></form>' + back + "</section>" +
+        "</div></div>";
     document.body.appendChild(dlg);
 
     /* ---------- Footer ---------- */
@@ -92,7 +113,7 @@
     const footerHTML =
         '<footer class="site-footer"><div class="footer-grid">' +
             '<div><div class="footer-brand">PawForward</div><p>Helping animals, one paw at a time. We rescue strays, heal them, and help them find loving homes.</p></div>' +
-            '<div><h3>Explore</h3><ul>' + LEFT.concat(RIGHT, [["Cart", "cart.html"]]).map(([l, h]) => '<li><a href="' + h + '">' + l + "</a></li>").join("") + "</ul></div>" +
+            '<div><h3>Explore</h3><ul>' + LEFT.concat(RIGHT, [["My account", "account.html"], ["Cart", "cart.html"]]).map(([l, h]) => '<li><a href="' + h + '">' + l + "</a></li>").join("") + "</ul></div>" +
             '<div><h3>Contact</h3><ul>' +
                 '<li><a href="mailto:hello@pawforward.org">hello@pawforward.org</a></li>' +
                 '<li><a href="tel:+639000000000">+63 900 000 0000</a></li>' +
@@ -100,7 +121,7 @@
                 "<li>Mon to Sat, 9:00 AM to 5:00 PM</li></ul></div>" +
             '<div><h3>Follow us</h3><p>See new arrivals and happy adoptions.</p><div class="social">' +
                 SOCIAL.map(([n, u, i]) => '<a href="' + u + '" target="_blank" rel="noopener" aria-label="' + n + '">' + i + "</a>").join("") + "</div></div>" +
-        '</div><div class="footer-bottom">&copy; ' + new Date().getFullYear() + " PawForward. All rights reserved.</div></footer>";
+        '</div><div class="footer-bottom"><p>' + REGISTRATION + '</p><p>&copy; ' + new Date().getFullYear() + " PawForward. All rights reserved.</p></div></footer>";
 
     function mountFooter() {
         let slot = document.getElementById("footer-placeholder");

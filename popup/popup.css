@@ -2,27 +2,24 @@
 
 body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
 
-.popup-overlay {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Split-Screen Modal Overlay */
+.split-popup-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(40, 10, 10, 0.7);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
     padding: 20px;
-    background: rgba(40, 10, 10, 0.65);
-    backdrop-filter: blur(4px);
     animation: overlayIn .35s ease both;
 }
 
-.popup-container {
+.split-popup-container {
     position: relative;
+    display: flex;
     width: 100%;
-    max-width: 420px;
-    max-height: 92vh;
-    overflow-y: auto;          /* sign-up form no longer gets clipped on short screens */
-    padding: 40px 36px 32px;
-    background: white;
-    border-radius: 18px;
-    border-top: 6px solid rgb(182, 55, 55);
+    max-width: 900px;
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
     animation: popIn .45s cubic-bezier(.2, .7, .2, 1) both;
 }
@@ -31,76 +28,98 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #2a2222; }
 @keyframes popIn { from { opacity: 0; transform: translateY(24px) scale(.96); } }
 @keyframes swap { from { opacity: 0; transform: translateY(14px); } }
 
-.close-button {
-    position: absolute;
-    top: 12px; right: 14px;
-    width: 36px; height: 36px;
-    border: 0; border-radius: 50%;
-    background: none;
-    font-size: 26px; line-height: 1;
-    color: #777;
-    cursor: pointer;
-    transition: background-color .25s, color .25s, transform .25s;
+/* Close Button */
+.close-modal-btn {
+    position: absolute; top: 16px; right: 16px; z-index: 10;
+    width: 36px; height: 36px; border: 0; border-radius: 50%;
+    background: #f5f5f5; color: #555; font-size: 24px; cursor: pointer;
+    transition: all .2s ease;
 }
-.close-button:hover { background: #faf3f3; color: rgb(182, 55, 55); transform: rotate(90deg); }
+.close-modal-btn:hover { background: rgb(182, 55, 55); color: white; transform: rotate(90deg); }
 
-.popup-container h2 { text-align: center; margin-bottom: 8px; font-size: 24px; color: #2a2222; }
-.popup-container p { text-align: center; margin-bottom: 22px; color: #6b5a5a; font-size: 14px; }
-
-.popup-container form { display: flex; flex-direction: column; }
-.popup-container label { margin-bottom: 6px; font-weight: 700; font-size: 13px; }
-
-.popup-container input {
-    padding: 12px 14px;
-    margin-bottom: 16px;
-    font: inherit; font-size: 14px;
-    border: 2px solid #e3d3d3;
-    border-radius: 10px;
-    transition: border-color .25s, box-shadow .25s;
+/* Left Side (Banner) */
+.auth-banner {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(140, 40, 40, 0.9), rgba(182, 55, 55, 0.7)), url('images/hero-dogs.jpg') center/cover;
+    color: white; padding: 48px;
+    display: flex; flex-direction: column; justify-content: center;
 }
-.popup-container input:focus {
-    outline: 0;
-    border-color: rgb(182, 55, 55);
-    box-shadow: 0 0 0 4px rgba(182, 55, 55, .12);
+.brand-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; margin-bottom: 24px; }
+.auth-banner h2 { font-size: 2.4rem; line-height: 1.15; margin: 0; color: white; font-weight: 700; }
+
+/* Right Side (Forms) */
+.auth-panel { flex: 1.2; padding: 48px 40px; background: #fff; position: relative; }
+.form-header h3 { font-size: 1.8rem; margin-bottom: 6px; font-weight: 700; color: #1a1a1a; }
+.form-header p { color: #6b5a5a; margin-bottom: 24px; font-size: 0.95rem; }
+
+/* Floating Labels */
+.floating-group { position: relative; margin-bottom: 16px; }
+.floating-group input {
+    width: 100%; padding: 20px 16px 8px;
+    border: 2px solid #e5e5e5; border-radius: 12px;
+    font: inherit; font-size: 1rem; background: #f9f9f9;
+    transition: all 0.25s ease;
+}
+.floating-group input:focus { outline: none; background: #ffffff; border-color: rgb(182, 55, 55); box-shadow: 0 0 0 4px rgba(182, 55, 55, 0.1); }
+.floating-group label {
+    position: absolute; left: 16px; top: 16px;
+    color: #6b5a5a; font-size: 1rem; pointer-events: none; font-weight: 700;
+    transition: 0.2s ease all;
+}
+.floating-group input:focus ~ label,
+.floating-group input:not(:placeholder-shown) ~ label,
+.active-label {
+    top: 6px; font-size: 0.75rem; color: rgb(182, 55, 55);
 }
 
-.popup-container form button {
-    padding: 13px;
-    font: inherit; font-weight: 700; font-size: 15px;
-    color: white;
-    background: rgb(182, 55, 55);
-    border: 0; border-radius: 999px;
-    cursor: pointer;
-    transition: background-color .3s, transform .3s;
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* Password Toggle */
+.toggle-password {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: #999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px; transition: color 0.2s;
 }
-.popup-container form button:hover { background: rgb(140, 40, 40); transform: translateY(-2px); }
+.toggle-password:hover { color: rgb(182, 55, 55); }
 
-.popup-container a { color: rgb(182, 55, 55); font-weight: 700; text-decoration: none; }
-.popup-container a:hover { text-decoration: underline; }
-.popup-container a:focus-visible, .popup-container button:focus-visible { outline: 3px solid #f2b8b8; outline-offset: 2px; }
+/* Buttons & Links */
+.submit-btn {
+    width: 100%; padding: 15px; margin-top: 8px;
+    background: rgb(182, 55, 55); color: white; border: none; border-radius: 12px;
+    font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer;
+    transition: background-color .3s, transform .2s, box-shadow .2s;
+}
+.submit-btn:hover { background: rgb(140, 40, 40); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(182, 55, 55, 0.2); }
 
-#signInForm + p { margin-top: 18px; margin-bottom: 0; }
-#signUpSection form + p { margin-top: 18px; margin-bottom: 0; }
+.switch-form { text-align: center; margin-top: 24px; font-size: 0.95rem; color: #6b5a5a; }
+.switch-form a, .switch-form button { background: none; border: none; color: rgb(182, 55, 55); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; transition: color 0.2s; }
+.switch-form a:hover, .switch-form button:hover { color: rgb(140, 40, 40); text-decoration: underline; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #f2b8b8; outline-offset: 2px; }
 
-/* Plays whenever your JS switches the section from display:none to visible */
-#signUpSection { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
-#signInForm, #signInForm + p { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
+/* Animation states & Errors */
+.form-container { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
+.form-container[hidden] { display: none !important; }
+.notice {
+    margin: 0 0 20px; padding: 12px 16px;
+    background: #faf3f3; border-left: 4px solid rgb(182, 55, 55);
+    border-radius: 8px; text-align: left; font-weight: 700; font-size: 14px; color: rgb(140, 40, 40);
+}
+.form-error {
+    margin: 0 0 16px; padding: 10px 14px;
+    background: #fdecec; color: #a12626; border-radius: 8px;
+    font-size: 13px; font-weight: 700; text-align: left;
+}
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* ---- additions for the new sign-in flow ---- */
-.popup-container [hidden] { display: none !important; }
-.popup-container section { animation: swap .4s cubic-bezier(.2, .7, .2, 1) both; }
-.popup-container .switch { margin: 18px 0 0; }
-.popup-container .notice {
-    margin: 0 0 18px; padding: 10px 14px;
-    background: #faf3f3; border-left: 4px solid rgb(182, 55, 55);
-    border-radius: 8px; text-align: left; font-weight: 700; font-size: 13px; color: rgb(140, 40, 40);
-}
-.popup-container .form-error {
-    margin: -6px 0 14px; padding: 9px 12px;
-    background: #fdecec; color: #a12626; border-radius: 8px;
-    font-size: 13px; font-weight: 700; text-align: left;
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .split-popup-container { flex-direction: column; max-height: 92vh; overflow-y: auto; }
+    .auth-banner { padding: 32px 24px; min-height: 200px; text-align: center; align-items: center; }
+    .auth-banner h2 { font-size: 2rem; text-align: center; }
+    .auth-panel { padding: 32px 24px; }
+    .input-row { grid-template-columns: 1fr; gap: 0; }
 }

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawForward | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- Inherits all your global styles & themes -->
+    
+    <style>
+        /* ================= Admin Specific Styles ================= */
+        body { background: var(--bg); overflow-x: hidden; }
+        
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        /* --- Sidebar --- */
+        .admin-sidebar {
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 20px;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 100;
+            transition: transform 0.3s var(--ease);
+        }
+        
+        .admin-brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; margin-bottom: 40px; padding-left: 12px; }
+        .admin-brand svg { width: 28px; height: 28px; color: var(--red); }
+        
+        .admin-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .admin-nav a {
+            display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+            text-decoration: none; color: var(--muted); font-weight: 700; font-size: 14px;
+            border-radius: 14px; transition: all 0.25s ease;
+        }
+        .admin-nav a svg { width: 20px; height: 20px; opacity: 0.7; transition: opacity 0.2s; }
+        .admin-nav a:hover { background: var(--blush); color: var(--red-text); }
+        .admin-nav a:hover svg { opacity: 1; color: var(--red); }
+        
+        .admin-nav a.active {
+            background: linear-gradient(145deg, var(--clay-top), var(--clay-bot));
+            box-shadow: 4px 5px 10px var(--clay-shadow), -3px -3px 8px var(--clay-hi);
+            color: var(--red-text);
+        }
+        .admin-nav a.active svg { opacity: 1; color: var(--red); }
+
+        .admin-logout { margin-top: auto; color: var(--bad); }
+        
+        /* --- Main Content Area --- */
+        .admin-main { flex: 1; margin-left: 280px; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* Header */
+        .admin-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 40px; background: var(--surface); border-bottom: 1px solid var(--line);
+            position: sticky; top: 0; z-index: 90;
+        }
+        .header-search input {
+            padding: 10px 16px; border-radius: 999px; border: 2px solid var(--field);
+            background: var(--bg); font-family: inherit; font-size: 14px; color: var(--ink);
+            width: 300px; transition: border-color 0.25s;
+        }
+        .header-search input:focus { outline: none; border-color: var(--red); }
+        
+        .admin-header-right { display: flex; align-items: center; gap: 20px; }
+        .admin-profile { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+        .admin-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); }
+
+        /* Dashboard Content */
+        .admin-content { padding: 40px; flex: 1; }
+        .page-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title h1 { font-size: 28px; margin: 0; }
+        
+        /* Claymorphism Stat Cards with Transitions */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .admin-stat-card {
+            padding: 24px; border-radius: 24px;
+            background: linear-gradient(145deg, var(--clay-top), var(--clay-bot));
+            box-shadow: 6px 8px 18px var(--clay-shadow), -5px -5px 14px var(--clay-hi), inset 1px 1px 4px var(--clay-hi);
+            display: flex; align-items: center; gap: 20px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(.2, .7, .2, 1), box-shadow 0.3s ease;
+        }
+        .admin-stat-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 10px 14px 28px var(--clay-shadow), -8px -8px 20px var(--clay-hi);
+        }
+        .admin-stat-card:active {
+            transform: translateY(2px);
+            box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-icon {
+            width: 56px; height: 56px; display: grid; place-items: center;
+            border-radius: 50%; color: white; font-size: 24px;
+            background: linear-gradient(145deg, #c94b4b, #a52e2e);
+            box-shadow: 4px 5px 10px rgba(182, 55, 55, .3);
+        }
+        .admin-stat-card.good .stat-icon { background: linear-gradient(145deg, #4caf50, #2e7d32); box-shadow: 4px 5px 10px rgba(76, 175, 80, .3); }
+        .admin-stat-card.gem .stat-icon { background: linear-gradient(145deg, #f8d26f, #d9a323); box-shadow: 4px 5px 10px rgba(217, 163, 35, .3); color: #3a2600; }
+        
+        .stat-info span { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-info strong { font-size: 28px; color: var(--ink); line-height: 1; }
+
+        /* Data Tables with Transitions */
+        .table-container {
+            background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+            padding: 24px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .table-header h2 { font-size: 18px; margin: 0; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 14px 16px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 2px solid var(--line); }
+        td { padding: 16px; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--line); transition: background-color 0.25s ease; }
+        tr:last-child td { border-bottom: 0; }
+        
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.25s ease, transform 0.2s ease;
+        }
+        tbody tr:hover {
+            background: var(--blush);
+            transform: translateX(6px);
+        }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .action-btns button {
+            background: var(--bg); border: 1px solid var(--field); color: var(--ink);
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .action-btns button:hover { border-color: var(--red); color: var(--red); background: var(--blush); }
+
+        .status-pill {
+            display: inline-block; padding: 6px 12px; border-radius: 999px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+        }
+        .status-pill.pending { background: #fff0c8; color: #b07d00; }
+        [data-theme="dark"] .status-pill.pending { background: #4a3d22; color: #f6d98a; }
+        .status-pill.approved { background: #dcfce7; color: #166534; }
+        [data-theme="dark"] .status-pill.approved { background: #052e16; color: #4ade80; }
+
+        /* Mobile Adjustments */
+        .menu-toggle-admin { display: none; background: none; border: 0; color: var(--ink); font-size: 28px; cursor: pointer; }
+        
+        @media (max-width: 900px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.open { transform: translateX(0); }
+            .admin-main { margin-left: 0; }
+            .menu-toggle-admin { display: block; }
+            .header-search { display: none; }
+            .admin-header { padding: 16px 24px; }
+            .admin-content { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <a href="index.html" class="admin-brand">
+            <svg viewBox="0 0 64 64" fill="currentColor">
+                <g fill="currentColor">
+                    <ellipse cx="32" cy="42" rx="13" ry="11"/>
+                    <circle cx="15" cy="28" r="6"/>
+                    <circle cx="27" cy="17" r="6"/>
+                    <circle cx="41" cy="17" r="6"/>
+                    <circle cx="53" cy="28" r="6"/>
+                </g>
+            </svg>
+            PawForward
+        </a>
+        
+        <nav class="admin-nav">
+            <a href="#" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Dashboard
+            </a>
+            <a href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                Animals
+            </a>
+            <a href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Adoption Apps
+            </a>
+            <a href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Donations
+            </a>
+            <a href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </a>
+
+            <!-- Link back to Main Site -->
+            <a href="index.html" style="margin-top: 14px; border-top: 1px solid var(--line); border-radius: 0; padding-top: 24px;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Website
+            </a>
+        </nav>
+        
+        <a href="#" class="admin-nav admin-logout logout-btn" style="margin-top:auto; flex:none;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Sign Out
+        </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        
+        <header class="admin-header">
+            <button class="menu-toggle-admin" onclick="document.getElementById('adminSidebar').classList.toggle('open')">☰</button>
+            <div class="header-search">
+                <input type="text" placeholder="Search animals, applications...">
+            </div>
+            <div class="admin-header-right">
+                <!-- Reusing your Dark Mode toggle logic -->
+                <button class="theme-toggle" aria-label="Toggle dark mode" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">
+                    <svg class="sun" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg class="moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <div class="admin-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=b63737&color=fff" alt="Admin">
+                    <span>Admin User</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="page-title">
+                <h1>Dashboard Overview</h1>
+                <button class="btn" style="border-radius: 999px;">+ Add New Animal</button>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="admin-stat-card">
+                    <div class="stat-icon">🐾</div>
+                    <div class="stat-info">
+                        <span>Animals in Shelter</span>
+                        <strong>142</strong>
+                    </div>
+                </div>
+                <div class="admin-stat-card good">
+                    <div class="stat-icon">🏠</div>
+                    <div class="stat-info">
+                        <span>Adopted This Month</span>
+                        <strong>38</strong>
+                    </div>
+                </div>
+                <div class="admin-stat-card gem">
+                    <div class="stat-icon">₱</div>
+                    <div class="stat-info">
+                        <span>Donations (30 Days)</span>
+                        <strong>₱45,200</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Recent Adoption Applications</h2>
+                    <a href="#" style="color: var(--red); font-size: 13px; font-weight: 700; text-decoration: none;">View All</a>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Applicant Name</th>
+                            <th>Animal Requested</th>
+                            <th>Date Submitted</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Maria Santos</td>
+                            <td>Bantay (Dog)</td>
+                            <td>Oct 24, 2026</td>
+                            <td><span class="status-pill pending">Pending Review</span></td>
+                            <td class="action-btns">
+                                <button aria-label="View">👁️</button>
+                                <button aria-label="Edit">✏️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>John Cruz</td>
+                            <td>Mingming (Cat)</td>
+                            <td>Oct 22, 2026</td>
+                            <td><span class="status-pill approved">Approved</span></td>
+                            <td class="action-btns">
+                                <button aria-label="View">👁️</button>
+                                <button aria-label="Edit">✏️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Elena Reyes</td>
+                            <td>Kiko (Cat)</td>
+                            <td>Oct 21, 2026</td>
+                            <td><span class="status-pill pending">Pending Interview</span></td>
+                            <td class="action-btns">
+                                <button aria-label="View">👁️</button>
+                                <button aria-label="Edit">✏️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Connect to your existing Javascript -->
+<script src="script.js"></script>
+
+<!-- Interactive Logic for Admin Panel -->
+<script>
+    // Bulletproof Sign Out
+    document.querySelector('.admin-logout').addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem("paw_user_role");
+        window.location.replace("index.html"); 
+    });
+
+    // Clickable Table Rows
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('click', () => {
+            if(typeof toast === 'function') {
+                toast("Opening application details...");
+            }
+        });
+    });
+
+    // Clickable Stat Cards
+    document.querySelectorAll('.admin-stat-card').forEach(card => {
+        card.addEventListener('click', () => {
+            if(typeof toast === 'function') {
+                toast("Filtering dashboard view...");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

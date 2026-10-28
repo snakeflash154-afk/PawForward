@@ -22,8 +22,14 @@
     <div class="donate-box card reveal">
         <div class="gate" id="gate" hidden>
             <strong>Sign in to donate</strong>
-            <p>Create a free account or sign in so we can thank you and keep track of your gift.</p>
+            <p>Create a free account or sign in so we can thank you and keep your receipts in one place.</p>
             <button type="button" class="btn" id="gateSignIn">Sign in or sign up</button>
+            <button type="button" class="btn btn-outline" id="gateGuest" hidden>Donate as a guest</button>
+        </div>
+        <div class="field" id="guestField" hidden>
+            <label for="guestEmail">Email for your receipt<span class="req" aria-hidden="true">*</span></label>
+            <input type="email" id="guestEmail" placeholder="Enter your email" autocomplete="email" aria-describedby="guestEmail-msg">
+            <small class="field-msg" id="guestEmail-msg"></small>
         </div>
 
         <div class="raised-wrap">
@@ -62,6 +68,15 @@
     </div>
 </section>
 
+<section class="container" style="padding-top:0">
+    <h2>Where your money goes</h2>
+    <p class="subtitle">We share how every peso is used, so you always know what your gift does.</p>
+    <div class="funds reveal">
+        <div class="funds-bar" id="fundsBar"></div>
+        <ul class="funds-legend" id="fundsLegend"></ul>
+    </div>
+</section>
+
 <div id="footer-placeholder"></div>
 <script src="core.js"></script>
 <script src="script.js"></script>
@@ -71,6 +86,7 @@
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
     let selected = 250;
+    let guestMode = false;
     const pay = paymentPicker();
     $("payMount").appendChild(pay.el);
 
@@ -103,10 +119,14 @@
     // Signed-out visitors can look around but cannot donate
     function applyGate() {
         const user = Auth.current();
-        $("gate").hidden = !!user;
-        $("donateBtn").textContent = user ? "Donate now" : "Sign in to donate";
-        if (user) $("thanks").classList.remove("show");
+        const open = !!user || guestMode;
+        $("gate").hidden = open;
+        $("gateGuest").hidden = !ALLOW_GUEST_DONATIONS;
+        $("guestField").hidden = !(guestMode && !user);
+        $("donateBtn").textContent = open ? "Donate now" : "Sign in to donate";
+        if (open) $("thanks").classList.remove("show");
     }
+    $("gateGuest").addEventListener("click", () => { guestMode = true; applyGate(); $("guestEmail").focus(); });
     window.addEventListener("authchange", applyGate);
     $("gateSignIn").addEventListener("click", () => openAuth("Please sign in to donate."));
 
@@ -126,14 +146,22 @@
 
     $("donateBtn").addEventListener("click", () => {
         const user = Auth.current();
-        if (!user) { openAuth("Please sign in to donate."); return; }
+        if (!user && !guestMode) { openAuth("Please sign in to donate."); return; }
         if (!(selected > 0)) { say("Choose or enter an amount to donate."); return; }
+        let email = user ? user.email : "";
+        if (!user) {
+            const g = $("guestEmail");
+            if (!setFieldState(g, emailRule(g.value), "Email looks good")) { g.focus(); return; }
+            email = g.value.trim();
+        }
         if (!pay.validate()) return;
         const before = Fund.raised();
         Fund.add(selected);
         render(before);
-        say("Thank you, " + user.firstName + "! Your " + fmt(selected) + " gift moves us closer to our goal.");
-        toast("Thank you! " + fmt(selected) + " donated.");
+        const rec = makeDonation({ amount: selected, method: pay.label(), email: email, name: user ? Auth.name() : "" });
+        if (user) UserData.addDonation(rec);
+        say("Thank you" + (user ? ", " + Auth.name() : "") + "! Your " + fmt(selected) + " gift moves us closer to our goal.");
+        toast("Thank you! " + fmt(selected) + " donated.", { action: { label: "View receipt", onClick: () => openReceipt(rec) } });
         $("customAmount").value = "";
     });
 

@@ -29,7 +29,7 @@ function toast(message, opts) {
     t.className = "toast " + o.type;
     t.setAttribute("role", "status");
     t.innerHTML = '<span class="t-icon" aria-hidden="true"></span><span class="t-msg"></span>';
-    t.querySelector(".t-icon").textContent = o.type === "success" ? "\u2713" : "!";
+    t.querySelector(".t-icon").textContent = o.type === "success" ? "\u2713" : o.type === "info" ? "i" : "!";
     t.querySelector(".t-msg").textContent = message;
     let timer;
     function dismiss() { clearTimeout(timer); t.classList.remove("show"); setTimeout(() => t.remove(), 500); }
@@ -122,98 +122,175 @@ function addPasswordToggles(root) {
 /* ===================== Sign-in dialog + auth state ===================== */
 const dlg = byId("authDialog");
 const signInBtn = byId("openPopup");
-const greeting = byId("greeting");
+const accountLink = byId("accountLink");
 const header = byId("siteHeader");
+const pw8 = (v) => !v ? "Password is required." : v.length < 8 ? "Use at least 8 characters (" + v.length + "/8)." : "";
 
 addPasswordToggles(dlg);
 
+const VIEW_TITLES = { in: "authTitle", up: "upTitle", forgot: "forgotTitle", code: "codeTitle" };
+let resetEmail = "", codeEmail = "";
+
+function authNote(text) { const n = byId("authNotice"); n.textContent = text || ""; n.hidden = !text; }
+function focusFirst() { const f = qs("[data-view]:not([hidden]) form:not([hidden]) input", dlg); if (f) f.focus(); }
+
 function showAuthView(which) {
-    byId("signInSection").hidden = which !== "in";
-    byId("signUpSection").hidden = which !== "up";
-    byId("signInError").hidden = true;
-    byId("signUpError").hidden = true;
-    byId(which === "in" ? "email" : "fName").focus();
+    qsa("[data-view]", dlg).forEach((sec) => { sec.hidden = sec.dataset.view !== which; });
+    dlg.setAttribute("aria-labelledby", VIEW_TITLES[which]);
+    qsa(".form-error", dlg).forEach((e) => { e.hidden = true; });
+    if (which === "forgot") { byId("forgotForm").hidden = false; byId("resetForm").hidden = true; byId("forgotMsg").hidden = true; }
+    if (which === "code") { byId("codeForm").hidden = false; byId("codeVerify").hidden = true; }
+    focusFirst();
 }
-function openAuth(notice) {
-    const n = byId("authNotice");
-    n.textContent = notice || "";
-    n.hidden = !notice;
-    ["signInForm", "signUpForm"].forEach((id) => { byId(id).reset(); clearFieldStates(byId(id)); });
+function openAuth(notice, view) {
+    authNote(notice);
+    qsa("form", dlg).forEach((f) => { f.reset(); clearFieldStates(f); });
     qsa('.pw-toggle[aria-pressed="true"]', dlg).forEach((b) => b.click());
-    byId("signInSection").hidden = false;
-    byId("signUpSection").hidden = true;
-    byId("signInError").hidden = true;
-    byId("signUpError").hidden = true;
     if (!dlg.open) dlg.showModal();
     document.body.style.overflow = "hidden";
-    byId("email").focus();
+    showAuthView(view || "in");
 }
 function closeAuth() { if (dlg.open) dlg.close(); }
 
 // Returns true if signed in. Otherwise opens the dialog with a message and returns false.
 function requireAuth(notice) {
-    if (Auth.current()) return true;
+    if (Auth.current() || localStorage.getItem("paw_user_role") === "admin") return true;
     openAuth(notice);
     return false;
 }
 
 function refreshAuth() {
     const user = Auth.current();
-    signInBtn.textContent = user ? "Sign out" : "Sign In";
-    greeting.hidden = !user;
-    greeting.textContent = user ? "Hi, " + user.firstName : "";
+    const isAdmin = localStorage.getItem("paw_user_role") === "admin"; // ADMIN HOOK ADDED HERE
+
+    if (isAdmin) {
+        signInBtn.textContent = "Admin Panel";
+        if (accountLink) accountLink.hidden = true;
+        if (byId("mobileAccount")) byId("mobileAccount").hidden = true;
+    } else {
+        signInBtn.textContent = user ? "Sign out" : "Sign In";
+        if (accountLink) accountLink.hidden = !user;
+        if (byId("mobileAccount")) byId("mobileAccount").hidden = !user;
+        if (user && accountLink) {
+            accountLink.textContent = user.firstName.charAt(0).toUpperCase();
+            accountLink.title = "My account (" + user.firstName + ")";
+        }
+    }
+    
+    qsa(".heart").forEach((h) => h.setAttribute("aria-pressed", UserData.isSaved(h.dataset.name)));
     window.dispatchEvent(new Event("authchange"));
 }
 
 dlg.addEventListener("close", () => { document.body.style.overflow = ""; });
-dlg.addEventListener("click", (e) => { if (e.target === dlg) closeAuth(); });   // click on the backdrop
+dlg.addEventListener("click", (e) => {
+    if (e.target === dlg) return closeAuth();                       // click on the backdrop
+    const link = e.target.closest("[data-view-link]");
+    if (link) { e.preventDefault(); authNote(""); showAuthView(link.dataset.viewLink); return; }
+    const social = e.target.closest("[data-social]");
+    if (social) authNote(social.dataset.social + " sign-in will be switched on once the back end is built.");
+});
 byId("authClose").addEventListener("click", closeAuth);
-byId("showSignUp").addEventListener("click", (e) => { e.preventDefault(); showAuthView("up"); });
-byId("showSignIn").addEventListener("click", (e) => { e.preventDefault(); showAuthView("in"); });
 
-signInBtn.addEventListener("click", () => {
-    if (Auth.current()) { Auth.signOut(); refreshAuth(); toast("You've been signed out."); }
+signInBtn.addEventListener("click", (e) => {
+    // ADMIN HOOK ADDED HERE
+    if (localStorage.getItem("paw_user_role") === "admin") {
+        e.preventDefault();
+        window.location.href = "admin.html";
+        return;
+    }
+    
+    if (Auth.current()) { 
+        Auth.signOut(); 
+        localStorage.removeItem("paw_user_role");
+        refreshAuth(); 
+        toast("You've been signed out."); 
+    }
     else openAuth();
 });
 window.addEventListener("storage", refreshAuth);   // keeps other tabs in sync
 
-function authSuccess(message) {
-    closeAuth();
-    refreshAuth();
-    toast(message + Auth.current().firstName + "!");
-}
+function authSuccess(message) { closeAuth(); refreshAuth(); toast(message + (Auth.name() || "User") + "!"); }
 function authFail(id, text) { const el = byId(id); el.textContent = text; el.hidden = false; }
 
 wireForm(byId("signInForm"), {
     email:    { check: emailRule, ok: "" },
     password: { check: need("Password"), ok: "" }
 }, () => {
-    const r = Auth.signIn(byId("email").value, byId("password").value);
+    const emailVal = byId("email").value;
+    const passVal = byId("password").value;
+    
+    // ADMIN HOOK ADDED HERE
+    if (emailVal === "admin@pawforward.org" && passVal === "admin123") {
+        localStorage.setItem("paw_user_role", "admin");
+        closeAuth();
+        window.location.href = "admin.html";
+        return;
+    }
+
+    localStorage.setItem("paw_user_role", "user");
+    const r = Auth.signIn(emailVal, passVal);
     if (!r.ok) return authFail("signInError", r.error);
     authSuccess("Welcome back, ");
 });
 
+// Sign-up is just email + password. The name is added later in My account.
 wireForm(byId("signUpForm"), {
-    fName: { check: need("First name"), ok: "Looks good" },
-    lName: { check: need("Last name"), ok: "Looks good" },
-    dob:   { check: (v) => !v ? "Date of birth is required." : new Date(v) > new Date() ? "Date of birth can't be in the future." : "", ok: "Looks good" },
-    city:  { check: need("City"), ok: "Looks good" },
-    signUpEmail: { check: emailRule, ok: "Email looks good" },
-    signUpPassword: {
-        check: (v) => !v ? "Password is required." : v.length < 8 ? "Use at least 8 characters (" + v.length + "/8)." : "",
-        ok: "Password is long enough", also: ["confirmPassword"]
-    },
-    confirmPassword: {
-        check: (v) => !v ? "Please confirm your password." : v !== byId("signUpPassword").value ? "The passwords don't match." : "",
-        ok: "Passwords match"
-    }
+    signUpEmail:    { check: emailRule, ok: "Email looks good" },
+    signUpPassword: { check: pw8, ok: "Password is long enough" }
 }, () => {
-    const r = Auth.signUp({
-        firstName: byId("fName").value, lastName: byId("lName").value, dob: byId("dob").value,
-        city: byId("city").value, email: byId("signUpEmail").value, password: byId("signUpPassword").value
-    });
+    const r = Auth.signUp({ email: byId("signUpEmail").value, password: byId("signUpPassword").value });
     if (!r.ok) return authFail("signUpError", r.error);
-    authSuccess("Welcome to PawForward, ");
+    localStorage.setItem("paw_user_role", "user");
+    closeAuth();
+    refreshAuth();
+    toast("Welcome to PawForward!", { action: { label: "Add your name", onClick: () => { location.href = "account.html#profile"; } } });
+});
+
+// Global logout listener for the Admin Panel
+document.addEventListener("click", (e) => {
+    const logoutBtn = e.target.closest(".logout-btn");
+    if (logoutBtn) {
+        e.preventDefault();
+        if (typeof Auth !== "undefined" && Auth.signOut) Auth.signOut();
+        localStorage.removeItem("paw_user_role");
+        window.location.href = "index.html";
+    }
+});
+
+// Forgot password. Demo: lets you choose the new password right here. Real version: emailed link.
+wireForm(byId("forgotForm"), { fgEmail: { check: emailRule, ok: "" } }, () => {
+    const email = byId("fgEmail").value;
+    const m = byId("forgotMsg");
+    m.textContent = "If an account exists for that email, we've sent a reset link.";
+    m.hidden = false;
+    resetEmail = Auth.exists(email) ? email : "";
+    byId("resetForm").hidden = !resetEmail;
+    if (resetEmail) byId("rsPassword").focus();
+});
+wireForm(byId("resetForm"), { rsPassword: { check: pw8, ok: "Password is long enough" } }, () => {
+    if (!Auth.resetPassword(resetEmail, byId("rsPassword").value).ok) return;
+    showAuthView("in");
+    authNote("Password updated. Please sign in with your new password.");
+    byId("email").value = resetEmail;
+    byId("password").focus();
+});
+
+// One-time code sign-in. Demo: the code is shown here. Real version: emailed or texted.
+wireForm(byId("codeForm"), { cdEmail: { check: emailRule, ok: "" } }, () => {
+    const email = byId("cdEmail").value;
+    const code = Auth.sendCode(email);
+    if (!code) return authFail("codeError", "We couldn't find an account with that email. Create one instead.");
+    byId("codeError").hidden = true;
+    codeEmail = email;
+    byId("codeHint").textContent = "Demo only: your code is " + code + ". Real codes will be emailed once the back end exists.";
+    byId("codeVerify").hidden = false;
+    byId("cdCode").focus();
+});
+wireForm(byId("codeVerify"), { cdCode: { check: (v) => /^\d{6}$/.test(v.trim()) ? "" : "Enter the 6-digit code.", ok: "" } }, () => {
+    const r = Auth.verifyCode(codeEmail, byId("cdCode").value);
+    if (!r.ok) return authFail("verifyError", r.error);
+    localStorage.setItem("paw_user_role", "user");
+    authSuccess("Welcome back, ");
 });
 
 refreshAuth();
@@ -369,6 +446,9 @@ if (contactForm) {
         const msg = byId("formThanks");
         msg.textContent = "Thanks, " + name + "! We got your message and will reply soon.";
         msg.classList.add("show");
+        const signedIn = !!Auth.current();
+        if (signedIn) UserData.addInquiry({ topic: byId("cTopic").value, pet: pet || "", message: byId("cMessage").value.trim() });
+        if (signedIn) msg.textContent += " You can follow it in My account.";
         toast("Message sent!");
         contactForm.reset();
         clearFieldStates(contactForm);
@@ -428,4 +508,150 @@ function paymentPicker() {
     }
     const labels = { card: "card", gcash: "GCash", maya: "Maya", bank: "bank transfer" };
     return { el: el, validate: validate, method: current, label: () => labels[current()] };
+}
+
+/* ================================ Saved hearts ================================ */
+document.addEventListener("click", (e) => {
+    const h = e.target.closest(".heart");
+    if (!h) return;
+    if (!requireAuth("Sign in to save the animals you love.")) return;
+    const nowSaved = UserData.toggleSaved(h.dataset.name);
+    h.setAttribute("aria-pressed", nowSaved);
+    toast(nowSaved ? "Saved " + h.dataset.name : "Removed " + h.dataset.name + " from saved", nowSaved ? { action: { label: "View saved", onClick: () => { location.href = "account.html#saved"; } } } : {});
+    window.dispatchEvent(new Event("savedchange"));
+});
+
+/* ================================ Receipts ================================ */
+function openReceipt(rec) {
+    let d = byId("receiptDialog");
+    if (!d) {
+        d = document.createElement("dialog");
+        d.id = "receiptDialog";
+        d.className = "auth receipt";
+        d.setAttribute("aria-labelledby", "rcTitle");
+        document.body.appendChild(d);
+        d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+        d.addEventListener("close", () => { document.body.style.overflow = ""; });
+    }
+    d.innerHTML =
+        '<div class="dlg-inner receipt-inner"><button type="button" class="dlg-close" aria-label="Close receipt">&times;</button>' +
+        '<div class="rc-head"><span class="rc-brand">PawForward</span><span class="rc-tag">Donation receipt</span></div>' +
+        '<h2 id="rcTitle">Thank you for your gift</h2>' +
+        '<dl class="rc-rows"><div><dt>Receipt no.</dt><dd data-k="id"></dd></div><div><dt>Date</dt><dd data-k="date"></dd></div>' +
+        '<div><dt>Donor</dt><dd data-k="donor"></dd></div><div><dt>Payment method</dt><dd data-k="method"></dd></div>' +
+        '<div class="rc-total"><dt>Amount</dt><dd data-k="amount"></dd></div></dl>' +
+        '<p class="rc-note">This is a demo receipt. Official receipts will carry your organization\'s registration details once the back end is set up.</p>' +
+        '<div class="rc-actions"><button type="button" class="btn btn-outline" data-rc="close">Close</button><button type="button" class="btn" data-rc="print">Print or save as PDF</button></div></div>';
+    const set = (k, v) => { qs('[data-k="' + k + '"]', d).textContent = v; };
+    set("id", rec.id);
+    set("date", new Date(rec.date).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }));
+    set("donor", rec.name ? rec.name + (rec.email ? " (" + rec.email + ")" : "") : rec.email || "Guest");
+    set("method", rec.method.charAt(0).toUpperCase() + rec.method.slice(1));
+    set("amount", "\u20B1" + Number(rec.amount).toLocaleString("en-US"));
+    qs(".dlg-close", d).onclick = () => d.close();
+    qs('[data-rc="close"]', d).onclick = () => d.close();
+    qs('[data-rc="print"]', d).onclick = () => window.print();
+    document.body.style.overflow = "hidden";
+    d.showModal();
+}
+
+/* ============================ Rescue stories (before / after) ============================ */
+function storyCard(s) {
+    const card = document.createElement("article");
+    card.className = "story-card reveal";
+    card.innerHTML =
+        '<div class="ba" style="--pos:50%">' +
+            '<div class="ba-img ba-after ph"><img loading="lazy" onerror="this.remove()"></div>' +
+            '<div class="ba-img ba-before ph"><img loading="lazy" onerror="this.remove()"></div>' +
+            '<span class="ba-tag ba-tag-before">Before</span><span class="ba-tag ba-tag-after">After</span>' +
+            '<input type="range" class="ba-range" min="0" max="100" value="50">' +
+            '<div class="ba-handle" aria-hidden="true"><span></span></div>' +
+        '</div><div class="story-body"><h3></h3><p></p></div>';
+    const imgs = qsa("img", card);
+    imgs[0].src = "images/story-" + s.id + "-after.jpg"; imgs[0].alt = s.name + " after rescue";
+    imgs[1].src = "images/story-" + s.id + "-before.jpg"; imgs[1].alt = s.name + " before rescue";
+    const range = qs(".ba-range", card);
+    range.setAttribute("aria-label", "Compare " + s.name + " before and after");
+    range.addEventListener("input", () => qs(".ba", card).style.setProperty("--pos", range.value + "%"));
+    qs("h3", card).textContent = s.title;
+    qs("p", card).textContent = s.text;
+    return card;
+}
+const storiesGrid = byId("storiesGrid");
+if (storiesGrid) STORIES.forEach((st) => { const c = storyCard(st); storiesGrid.appendChild(c); observer.observe(c); });
+
+/* ============================== Where your money goes ============================== */
+const fundsBar = byId("fundsBar");
+if (fundsBar) {
+    const legend = byId("fundsLegend");
+    fundsBar.setAttribute("role", "img");
+    fundsBar.setAttribute("aria-label", "How donations are spent: " + FUNDS.map((f) => f.label + " " + f.pct + " percent").join(", "));
+    FUNDS.forEach((f) => {
+        const seg = document.createElement("span");
+        seg.className = "seg";
+        seg.style.background = f.color;
+        seg.dataset.percent = f.pct;
+        seg.setAttribute("aria-hidden", "true");
+        fundsBar.appendChild(seg);
+        observer.observe(seg);
+        const li = document.createElement("li");
+        li.innerHTML = '<i></i><span></span><b></b>';
+        qs("i", li).style.background = f.color;
+        qs("span", li).textContent = f.label;
+        qs("b", li).textContent = "\u20B1" + f.pct + " of every \u20B1100";
+        legend.appendChild(li);
+    });
+}
+
+/* ================== Pet Matching Quiz Logic ================== */
+function nextQuizStep(stepNumber) {
+    // Hide all steps
+    document.querySelectorAll('.quiz-step').forEach(step => step.hidden = true);
+    
+    if (stepNumber === 3) {
+        // Show loading state
+        document.getElementById('quizStep3').hidden = false;
+        
+        // Animate the progress bar
+        setTimeout(() => {
+            document.getElementById('quizLoader').style.width = '100%';
+            document.getElementById('quizLoader').style.transition = 'width 1.5s ease-in-out';
+        }, 50);
+
+        // Fake processing delay, then show result
+        setTimeout(() => {
+            document.getElementById('quizStep3').hidden = true;
+            document.getElementById('quizResult').hidden = false;
+        }, 1800);
+    } else {
+        // Show next question
+        const nextStep = document.getElementById('quizStep' + stepNumber);
+        if(nextStep) nextStep.hidden = false;
+    }
+}
+
+function resetQuiz() {
+    document.querySelectorAll('.quiz-step').forEach(step => step.hidden = true);
+    document.getElementById('quizStep1').hidden = false;
+    document.getElementById('quizLoader').style.width = '0%';
+    document.getElementById('quizLoader').style.transition = 'none';
+}
+
+/* ================== Volunteer Shift Scheduler ================== */
+function claimShift(buttonElement) {
+    // Check if user is logged in
+    if (!requireAuth("Please sign in to claim a volunteer shift.")) return;
+    
+    // UI Update to show it's claimed
+    buttonElement.classList.remove('open');
+    buttonElement.classList.add('full');
+    buttonElement.disabled = true;
+    buttonElement.textContent = "Claimed";
+    buttonElement.style.background = "var(--red)";
+    buttonElement.style.color = "white";
+    buttonElement.style.borderColor = "var(--red-dark)";
+    
+    if(typeof toast === 'function') {
+        toast("Shift successfully claimed! Check your email for details.");
+    }
 }

@@ -1,42 +1,123 @@
-/* Shared front-end data layer (loaded by every page AND the sign-in popup).
-   DEMO ONLY: accounts live in this browser's localStorage so you can test the flow.
-   When we build the back end, only the bodies of these functions change. */
+/* Shared front-end data layer (loaded by every page).
+   DEMO ONLY: accounts and per-user data live in this browser's localStorage so you can test every flow.
+   When we build the back end, only the bodies of Auth / UserData / Fund change. */
+
+const ALLOW_GUEST_DONATIONS = false;   // true = visitors can donate without an account (they enter an email for the receipt)
 
 const Auth = (() => {
-    const USERS = "pawforwardUsers", SESSION = "pawforwardSession";
-    const read = (k, fallback) => {
-        try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? fallback : v; }
+    const USERS = "pawforwardUsers", SESSION = "pawforwardSession", CODE = "pawforwardCode";
+    const read = (k, fallback, store) => {
+        try { const v = JSON.parse((store || localStorage).getItem(k)); return v === null ? fallback : v; }
         catch (e) { return fallback; }
     };
     // Light obfuscation for the demo. Real password hashing happens on the server.
     const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); };
-    const start = (u) => localStorage.setItem(SESSION, JSON.stringify({ email: u.email, firstName: u.firstName }));
+    const users = () => read(USERS, []);
+    const saveUsers = (list) => localStorage.setItem(USERS, JSON.stringify(list));
+    const norm = (e) => e.trim().toLowerCase();
+    const nameOf = (u) => {
+        if (u.firstName) return u.firstName;
+        const local = u.email.split("@")[0].split(/[._+\-\d]+/)[0] || u.email.split("@")[0];
+        return local.charAt(0).toUpperCase() + local.slice(1);
+    };
+    const start = (u) => localStorage.setItem(SESSION, JSON.stringify({ email: u.email, firstName: nameOf(u) }));
 
     return {
         current: () => read(SESSION, null),
+        name() { const s = this.current(); return s ? s.firstName : ""; },
+        exists: (email) => users().some((u) => u.email === norm(email)),
+        profile() { const s = this.current(); return s ? users().find((u) => u.email === s.email) || null : null; },
+
+        // Sign-up is just email + password. The name is added later in My account.
         signUp(d) {
-            const users = read(USERS, []);
-            const email = d.email.trim().toLowerCase();
-            if (users.some((u) => u.email === email)) {
-                return { ok: false, error: "An account with this email already exists. Try signing in." };
-            }
-            const user = { firstName: d.firstName.trim(), lastName: d.lastName.trim(), dob: d.dob, city: d.city.trim(), email, pw: hash(d.password) };
-            users.push(user);
-            localStorage.setItem(USERS, JSON.stringify(users));
-            start(user);
+            const list = users(), email = norm(d.email);
+            if (list.some((u) => u.email === email)) return { ok: false, error: "An account with this email already exists. Try signing in." };
+            const user = { email, pw: hash(d.password), firstName: "", lastName: "", city: "", phone: "", createdAt: new Date().toISOString() };
+            list.push(user); saveUsers(list); start(user);
             return { ok: true };
         },
         signIn(emailRaw, password) {
-            const email = emailRaw.trim().toLowerCase();
-            const user = read(USERS, []).find((u) => u.email === email);
+            const user = users().find((u) => u.email === norm(emailRaw));
             if (!user) return { ok: false, error: "We couldn't find an account with that email. Sign up to create one." };
             if (user.pw !== hash(password)) return { ok: false, error: "Wrong password. Please try again." };
             start(user);
             return { ok: true };
         },
-        signOut: () => localStorage.removeItem(SESSION)
+        signOut: () => localStorage.removeItem(SESSION),
+
+        updateProfile(fields) {
+            const list = users(), s = this.current();
+            const user = s && list.find((u) => u.email === s.email);
+            if (!user) return { ok: false, error: "Please sign in again." };
+            ["firstName", "lastName", "city", "phone"].forEach((k) => { if (k in fields) user[k] = String(fields[k]).trim(); });
+            saveUsers(list); start(user);
+            return { ok: true };
+        },
+        changePassword(current, next) {
+            const list = users(), s = this.current();
+            const user = s && list.find((u) => u.email === s.email);
+            if (!user) return { ok: false, error: "Please sign in again." };
+            if (user.pw !== hash(current)) return { ok: false, error: "Your current password is not right." };
+            user.pw = hash(next); saveUsers(list);
+            return { ok: true };
+        },
+        // Demo reset: the real version is an emailed link that expires.
+        resetPassword(email, next) {
+            const list = users(), user = list.find((u) => u.email === norm(email));
+            if (!user) return { ok: false, error: "Account not found." };
+            user.pw = hash(next); saveUsers(list);
+            return { ok: true };
+        },
+        // Demo one-time code: the real version is emailed or texted and expires in minutes.
+        sendCode(email) {
+            if (!this.exists(email)) return null;
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            sessionStorage.setItem(CODE, JSON.stringify({ email: norm(email), code: code, exp: Date.now() + 10 * 60000 }));
+            return code;
+        },
+        verifyCode(email, code) {
+            const c = read(CODE, null, sessionStorage);
+            if (!c || c.email !== norm(email) || Date.now() > c.exp) return { ok: false, error: "That code has expired. Ask for a new one." };
+            if (c.code !== code.trim()) return { ok: false, error: "That code isn't right. Check it and try again." };
+            sessionStorage.removeItem(CODE);
+            start(users().find((u) => u.email === norm(email)));
+            return { ok: true };
+        }
     };
 })();
+
+/* Per-user data: donations (with receipts), saved animals, adoption inquiries */
+const UserData = (() => {
+    const key = (email) => "pawforwardData:" + email;
+    const empty = () => ({ donations: [], saved: [], inquiries: [] });
+    const load = () => {
+        const s = Auth.current();
+        if (!s) return null;
+        try { return Object.assign(empty(), JSON.parse(localStorage.getItem(key(s.email)))); } catch (e) { return empty(); }
+    };
+    const save = (d) => localStorage.setItem(key(Auth.current().email), JSON.stringify(d));
+    return {
+        donations() { const d = load(); return d ? d.donations : []; },
+        addDonation(rec) { const d = load(); if (d) { d.donations.unshift(rec); save(d); } return rec; },
+        saved() { const d = load(); return d ? d.saved : []; },
+        isSaved(name) { return this.saved().includes(name); },
+        toggleSaved(name) {
+            const d = load(); if (!d) return false;
+            const i = d.saved.indexOf(name);
+            if (i >= 0) d.saved.splice(i, 1); else d.saved.push(name);
+            save(d);
+            return i < 0;
+        },
+        inquiries() { const d = load(); return d ? d.inquiries : []; },
+        addInquiry(rec) { const d = load(); if (d) { d.inquiries.unshift(Object.assign({ date: new Date().toISOString(), status: "Sent" }, rec)); save(d); } }
+    };
+})();
+
+function makeDonation(info) {
+    const now = new Date();
+    const stamp = now.toISOString().slice(0, 10).replace(/-/g, "");
+    return { id: "PF-" + stamp + "-" + String(Math.floor(1000 + Math.random() * 9000)), date: now.toISOString(), amount: info.amount, method: info.method, email: info.email || "", name: info.name || "" };
+}
 
 const Fund = {
     goal: 50000,
@@ -46,6 +127,20 @@ const Fund = {
     percent() { return Math.min((this.raised() / this.goal) * 100, 100); }
 };
 
+/* Where donations go (sample percentages, replace with your real breakdown) */
+const FUNDS = [
+    { label: "Food and shelter",   pct: 45, color: "#b63737" },
+    { label: "Vet care and vaccines", pct: 30, color: "#c8921a" },
+    { label: "Rescue operations",  pct: 15, color: "#7a8f6a" },
+    { label: "Admin and fundraising", pct: 10, color: "#b9a8a6" }
+];
+
+/* Rescue stories (sample). Before/after photos: images/story-<id>-before.jpg and -after.jpg */
+const STORIES = [
+    { id: "bantay", name: "Bantay", title: "From the roadside to the sofa", text: "Found limping beside a highway, hungry and scared. After three weeks of vet care and a lot of cuddles, Bantay now sleeps on a sofa and chases his tail." },
+    { id: "luna",   name: "Luna",   title: "Small, silent and sick", text: "Luna arrived with an eye infection and barely any fur. A patient foster family nursed her back, and she learned to purr again." },
+    { id: "choco",  name: "Choco",  title: "A second chance at a family", text: "Choco spent months alone on a construction site. Today he walks to school with the kids who adopted him." }
+];
 
 /* ============================ Animals ============================
    Sample data. Replace with your real animals (later this comes from the back end).
@@ -88,13 +183,17 @@ function animalCard(a, i) {
     card.className = "animal-card" + (gem ? " is-gem" : "");
     card.style.setProperty("--i", i || 0);
     card.innerHTML =
-        '<div class="animal-pic ph"><img loading="lazy" onerror="this.remove()">' + (gem ? '<span class="gem-badge">\u2605 Hidden Gem</span>' : "") + "</div>" +
+        '<div class="animal-pic ph"><img loading="lazy" onerror="this.remove()"><button type="button" class="heart" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>' + (gem ? '<span class="gem-badge">\u2605 Hidden Gem</span>' : "") + "</div>" +
         '<div class="animal-info"><h3></h3>' +
         '<ul class="badges" aria-label="Details"><li class="badge badge-type"></li><li class="badge badge-age"></li><li class="badge badge-sex"></li><li class="badge badge-group"></li></ul>' +
         '<p class="animal-desc"></p><p class="wait"></p><a class="btn"></a></div>';
     const img = card.querySelector("img");
     img.src = a.img; img.alt = a.name;
     card.querySelector("h3").textContent = a.name;
+    const heart = card.querySelector(".heart");
+    heart.dataset.name = a.name;
+    heart.setAttribute("aria-label", "Save " + a.name);
+    heart.setAttribute("aria-pressed", UserData.isSaved(a.name));
     card.querySelector(".badge-type").textContent = a.type;
     card.querySelector(".badge-age").textContent = formatAge(a.ageMonths);
     card.querySelector(".badge-sex").textContent = a.sex;
