@@ -655,3 +655,4 @@ function claimShift(buttonElement) {
         toast("Shift successfully claimed! Check your email for details.");
     }
 }
+

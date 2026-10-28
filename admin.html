@@ -89,10 +89,6 @@
             transform: translateY(-6px) scale(1.02);
             box-shadow: 10px 14px 28px var(--clay-shadow), -8px -8px 20px var(--clay-hi);
         }
-        .admin-stat-card:active {
-            transform: translateY(2px);
-            box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.2);
-        }
 
         .stat-icon {
             width: 56px; height: 56px; display: grid; place-items: center;
@@ -106,7 +102,7 @@
         .stat-info span { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-info strong { font-size: 28px; color: var(--ink); line-height: 1; }
 
-        /* Data Tables with Transitions */
+        /* Data Tables */
         .table-container {
             background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
             padding: 24px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
@@ -116,37 +112,39 @@
         
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { padding: 14px 16px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 2px solid var(--line); }
-        td { padding: 16px; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--line); transition: background-color 0.25s ease; }
+        td { padding: 16px; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--line); }
         tr:last-child td { border-bottom: 0; }
         
-        tbody tr {
-            cursor: pointer;
-            transition: background-color 0.25s ease, transform 0.2s ease;
-        }
-        tbody tr:hover {
-            background: var(--blush);
-            transform: translateX(6px);
-        }
-        
-        .action-btns { display: flex; gap: 8px; }
-        .action-btns button {
-            background: var(--bg); border: 1px solid var(--field); color: var(--ink);
-            width: 32px; height: 32px; border-radius: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .action-btns button:hover { border-color: var(--red); color: var(--red); background: var(--blush); }
-
         .status-pill {
             display: inline-block; padding: 6px 12px; border-radius: 999px;
             font-size: 11px; font-weight: 700; text-transform: uppercase;
         }
         .status-pill.pending { background: #fff0c8; color: #b07d00; }
-        [data-theme="dark"] .status-pill.pending { background: #4a3d22; color: #f6d98a; }
         .status-pill.approved { background: #dcfce7; color: #166534; }
-        [data-theme="dark"] .status-pill.approved { background: #052e16; color: #4ade80; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; place-items: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: grid; }
+        .modal-card {
+            background: var(--surface); padding: 30px; border-radius: 24px;
+            width: 100%; max-width: 450px; border: 1px solid var(--line);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal-card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; color: var(--ink); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--muted); }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid var(--field);
+            background: var(--bg); font-family: inherit; font-size: 14px; color: var(--ink); box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--red); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 
         /* Mobile Adjustments */
         .menu-toggle-admin { display: none; background: none; border: 0; color: var(--ink); font-size: 28px; cursor: pointer; }
-        
         @media (max-width: 900px) {
             .admin-sidebar { transform: translateX(-100%); }
             .admin-sidebar.open { transform: translateX(0); }
@@ -182,24 +180,10 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 Dashboard
             </a>
-            <a href="#">
+            <a href="adopt.html">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 Animals
             </a>
-            <a href="#">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Adoption Apps
-            </a>
-            <a href="#">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Donations
-            </a>
-            <a href="#">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Settings
-            </a>
-
-            <!-- Link back to Main Site -->
             <a href="index.html" style="margin-top: 14px; border-top: 1px solid var(--line); border-radius: 0; padding-top: 24px;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to Website
@@ -214,14 +198,12 @@
 
     <!-- Main Content -->
     <main class="admin-main">
-        
         <header class="admin-header">
             <button class="menu-toggle-admin" onclick="document.getElementById('adminSidebar').classList.toggle('open')">☰</button>
             <div class="header-search">
                 <input type="text" placeholder="Search animals, applications...">
             </div>
             <div class="admin-header-right">
-                <!-- Reusing your Dark Mode toggle logic -->
                 <button class="theme-toggle" aria-label="Toggle dark mode" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">
                     <svg class="sun" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <svg class="moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -236,7 +218,7 @@
         <div class="admin-content">
             <div class="page-title">
                 <h1>Dashboard Overview</h1>
-                <button class="btn" style="border-radius: 999px;">+ Add New Animal</button>
+                <button class="btn" id="openModalBtn" style="border-radius: 999px; cursor: pointer;">+ Add New Animal</button>
             </div>
 
             <!-- Stats Row -->
@@ -245,7 +227,7 @@
                     <div class="stat-icon">🐾</div>
                     <div class="stat-info">
                         <span>Animals in Shelter</span>
-                        <strong>142</strong>
+                        <strong>143</strong>
                     </div>
                 </div>
                 <div class="admin-stat-card good">
@@ -268,7 +250,6 @@
             <div class="table-container">
                 <div class="table-header">
                     <h2>Recent Adoption Applications</h2>
-                    <a href="#" style="color: var(--red); font-size: 13px; font-weight: 700; text-decoration: none;">View All</a>
                 </div>
                 <table>
                     <thead>
@@ -277,7 +258,6 @@
                             <th>Animal Requested</th>
                             <th>Date Submitted</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -286,67 +266,98 @@
                             <td>Bantay (Dog)</td>
                             <td>Oct 24, 2026</td>
                             <td><span class="status-pill pending">Pending Review</span></td>
-                            <td class="action-btns">
-                                <button aria-label="View">👁️</button>
-                                <button aria-label="Edit">✏️</button>
-                            </td>
                         </tr>
                         <tr>
                             <td>John Cruz</td>
                             <td>Mingming (Cat)</td>
                             <td>Oct 22, 2026</td>
                             <td><span class="status-pill approved">Approved</span></td>
-                            <td class="action-btns">
-                                <button aria-label="View">👁️</button>
-                                <button aria-label="Edit">✏️</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Elena Reyes</td>
-                            <td>Kiko (Cat)</td>
-                            <td>Oct 21, 2026</td>
-                            <td><span class="status-pill pending">Pending Interview</span></td>
-                            <td class="action-btns">
-                                <button aria-label="View">👁️</button>
-                                <button aria-label="Edit">✏️</button>
-                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-
         </div>
     </main>
 </div>
 
-<!-- Connect to your existing Javascript -->
-<script src="script.js"></script>
+<!-- Add Animal Modal Popup -->
+<div class="modal-overlay" id="animalModal">
+    <div class="modal-card">
+        <h2>Add New Rescue Pet</h2>
+        <form id="addAnimalForm">
+            <div class="form-group">
+                <label for="petName">Pet Name</label>
+                <input type="text" id="petName" required placeholder="e.g. Brownie">
+            </div>
+            <div class="form-group">
+                <label for="petType">Type</label>
+                <select id="petType">
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="petStatus">Status</label>
+                <select id="petStatus">
+                    <option value="Available">Available</option>
+                    <option value="Pending">Pending Adoption</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn" id="closeModalBtn" style="background: var(--field); color: var(--ink);">Cancel</button>
+                <button type="submit" class="btn" id="savePetBtn">Save to Cloud</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<!-- Interactive Logic for Admin Panel -->
-<script>
-    // Bulletproof Sign Out
-    document.querySelector('.admin-logout').addEventListener('click', (e) => {
+<!-- Firebase Cloud Integration Module -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Modal Control Elements
+    const modal = document.getElementById("animalModal");
+    const openBtn = document.getElementById("openModalBtn");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const form = document.getElementById("addAnimalForm");
+
+    openBtn.addEventListener("click", () => modal.classList.add("active"));
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+
+    // Handle Form Submit & Send to Firestore Cloud
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        localStorage.removeItem("paw_user_role");
-        window.location.replace("index.html"); 
-    });
 
-    // Clickable Table Rows
-    document.querySelectorAll('tbody tr').forEach(row => {
-        row.addEventListener('click', () => {
-            if(typeof toast === 'function') {
-                toast("Opening application details...");
-            }
-        });
-    });
+        const name = document.getElementById("petName").value;
+        const type = document.getElementById("petType").value;
+        const status = document.getElementById("petStatus").value;
+        const saveBtn = document.getElementById("savePetBtn");
 
-    // Clickable Stat Cards
-    document.querySelectorAll('.admin-stat-card').forEach(card => {
-        card.addEventListener('click', () => {
-            if(typeof toast === 'function') {
-                toast("Filtering dashboard view...");
-            }
-        });
+        try {
+            saveBtn.textContent = "Saving...";
+            saveBtn.disabled = true;
+
+            // Push directly to Firestore 'animals' collection
+            await addDoc(collection(db, "animals"), {
+                name: name,
+                type: type,
+                status: status,
+                createdAt: new Date()
+            });
+
+            alert(`Successfully added ${name} to the cloud database!`);
+            form.reset();
+            modal.classList.remove("active");
+            
+            // Redirect to adopt page to see the new animal live
+            window.location.href = "adopt.html";
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            alert("Failed to save pet to cloud. Check console.");
+            saveBtn.textContent = "Save to Cloud";
+            saveBtn.disabled = false;
+        }
     });
 </script>
 
