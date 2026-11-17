@@ -7,6 +7,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .donate-hero-wrap {
+            position: relative;
+            padding: 88px 20px;
+            background:
+                linear-gradient(135deg, rgba(22, 15, 13, 0.55) 0%, rgba(22, 15, 13, 0.42) 100%),
+                url("https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1800&q=85") center 35% / cover no-repeat;
+        }
+        .donate-hero-wrap .donate-box.card {
+            background: rgba(255, 251, 248, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 24px 60px rgba(18, 12, 10, 0.28);
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,57 +35,59 @@
     <p>Help us reach our monthly milestone and keep rescued animals fed, vaccinated, and safe.</p>
 </section>
 
-<section class="container">
-    <div class="donate-box card reveal">
-        <div class="gate" id="gate" hidden>
-            <strong>Sign in to donate</strong>
-            <p>Create a free account or sign in so we can thank you and keep your official tax receipts in one place.</p>
-            <button type="button" class="btn" id="gateSignIn">Sign in or create account</button>
-            <button type="button" class="btn btn-outline" id="gateGuest" hidden>Donate as guest</button>
-        </div>
-        <div class="field" id="guestField" hidden>
-            <label for="guestEmail">Email for your receipt<span class="req" aria-hidden="true">*</span></label>
-            <input type="email" id="guestEmail" placeholder="Enter your email" autocomplete="email" aria-describedby="guestEmail-msg">
-            <small class="field-msg" id="guestEmail-msg"></small>
-        </div>
-
-        <div class="raised-wrap">
-            <p class="raised" id="raisedAmount">&#8369;0</p>
-            <p class="goal-text">raised of our <strong id="goalAmount"></strong> goal</p>
-        </div>
-
-        <div class="progress" role="progressbar" aria-label="Fundraising progress">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-marks">
-            <span id="startMark"></span>
-            <span id="midMark"></span>
-            <span id="endMark"></span>
-        </div>
-
-        <div class="donate-amounts" id="amounts">
-            <button type="button" class="amount-btn" data-amount="100"></button>
-            <button type="button" class="amount-btn selected" data-amount="250"></button>
-            <button type="button" class="amount-btn" data-amount="500"></button>
-            <button type="button" class="amount-btn" data-amount="1000"></button>
-        </div>
-
-        <div class="custom-amount">
-            <label for="customAmount" style="display:block;font-weight:700;margin-bottom:8px">Or enter any amount</label>
-            <div class="amount-input">
-                <span class="cur"></span>
-                <input type="number" id="customAmount" min="1" placeholder="Enter amount">
+<div class="donate-hero-wrap">
+    <section class="container" style="padding:0;">
+        <div class="donate-box card reveal">
+            <div class="gate" id="gate" hidden>
+                <strong>Sign in to donate</strong>
+                <p>Create a free account or sign in so we can thank you and keep your official tax receipts in one place.</p>
+                <button type="button" class="btn" id="gateSignIn">Sign in or create account</button>
+                <button type="button" class="btn btn-outline" id="gateGuest" hidden>Donate as guest</button>
             </div>
+            <div class="field" id="guestField" hidden>
+                <label for="guestEmail">Email for your receipt<span class="req" aria-hidden="true">*</span></label>
+                <input type="email" id="guestEmail" placeholder="Enter your email" autocomplete="email" aria-describedby="guestEmail-msg">
+                <small class="field-msg" id="guestEmail-msg"></small>
+            </div>
+
+            <div class="raised-wrap">
+                <p class="raised" id="raisedAmount">&#8369;0</p>
+                <p class="goal-text">raised of our <strong id="goalAmount"></strong> goal</p>
+            </div>
+
+            <div class="progress" role="progressbar" aria-label="Fundraising progress">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-marks">
+                <span id="startMark"></span>
+                <span id="midMark"></span>
+                <span id="endMark"></span>
+            </div>
+
+            <div class="donate-amounts" id="amounts">
+                <button type="button" class="amount-btn" data-amount="100"></button>
+                <button type="button" class="amount-btn selected" data-amount="250"></button>
+                <button type="button" class="amount-btn" data-amount="500"></button>
+                <button type="button" class="amount-btn" data-amount="1000"></button>
+            </div>
+
+            <div class="custom-amount">
+                <label for="customAmount" style="display:block;font-weight:700;margin-bottom:8px">Or enter any amount</label>
+                <div class="amount-input">
+                    <span class="cur"></span>
+                    <input type="number" id="customAmount" min="1" placeholder="Enter amount">
+                </div>
+            </div>
+
+            <div id="payMount"></div>
+            <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
+            <button type="button" class="donate-now" id="donateBtn">Donate now</button>
+            <p class="thanks" id="thanks" role="status"></p>
         </div>
+    </section>
+</div>
 
-        <div id="payMount"></div>
-        <p class="donate-impact" id="donateImpact" aria-live="polite"></p>
-        <button type="button" class="donate-now" id="donateBtn">Donate now</button>
-        <p class="thanks" id="thanks" role="status"></p>
-    </div>
-</section>
-
-<section class="container" style="padding-top:0">
+<section class="container" style="padding-top:64px">
     <h2>Where your money goes</h2>
     <p class="subtitle">We transparently share how every peso is used, so you always know what your gift achieves.</p>
     <div class="funds reveal">
@@ -81,12 +100,15 @@
 <script src="Core.js"></script>
 <script src="script.js"></script>
 <script src="Cart.js"></script>
-<script>
+<script type="module">
+    import { supabase } from "./firebase-config.js";
+
     const CUR = "\u20B1";
     const $ = (id) => document.getElementById(id);
     const fmt = (n) => CUR + Math.round(n).toLocaleString("en-US");
     let selected = 250;
     let guestMode = false;
+    let liveRaised = Fund.raised(); // fallback until Supabase responds
     const pay = paymentPicker();
     $("payMount").appendChild(pay.el);
 
@@ -97,15 +119,28 @@
     $("midMark").textContent = fmt(Fund.goal / 2);
     $("endMark").textContent = fmt(Fund.goal);
 
-    function render(from) {
-        const to = Fund.raised();
-        $("progressFill").style.width = Fund.percent() + "%";
+    function render(from, targetTotal = liveRaised) {
+        const pct = Math.min(100, Math.round((targetTotal / Fund.goal) * 100));
+        $("progressFill").style.width = pct + "%";
         const start = performance.now();
         (function tick(now) {
             const p = Math.min((now - start) / 900, 1);
-            $("raisedAmount").textContent = fmt(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+            $("raisedAmount").textContent = fmt(from + (targetTotal - from) * (1 - Math.pow(1 - p, 3)));
             if (p < 1) requestAnimationFrame(tick);
         })(start);
+    }
+
+    async function syncLiveDonations(animateFrom = 0) {
+        try {
+            const { data, error } = await supabase.from("donations").select("amount");
+            if (!error && data) {
+                liveRaised = data.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+                localStorage.setItem("pawforwardRaised", String(liveRaised));
+            }
+        } catch (err) {
+            console.warn("Using cached donation total:", err);
+        }
+        render(animateFrom, liveRaised);
     }
 
     function showImpact(amount) {
@@ -143,6 +178,8 @@
         showImpact(selected);
     });
 
+    const forPet = (new URLSearchParams(location.search).get("for") || "").trim().slice(0, 40);
+
     $("donateBtn").addEventListener("click", async () => {
         const user = Auth.current();
         if (!user && !guestMode) { openAuth("Please sign in to donate."); return; }
@@ -154,12 +191,25 @@
             email = g.value.trim();
         }
         if (!pay.validate()) return;
-        const before = Fund.raised();
+
+        const before = liveRaised;
         Fund.add(selected);
-        render(before);
         const rec = makeDonation({ amount: selected, method: pay.label(), email: email, name: user ? Auth.name() : "" });
         if (user) UserData.addDonation(rec);
-        
+
+        // Save donation to Supabase so all devices & Admin Dashboard update live
+        await supabase.from("donations").insert([{
+            receipt_id: rec.id,
+            amount: selected,
+            method: pay.label(),
+            donor_name: user ? Auth.name() : "Guest Supporter",
+            donor_email: email,
+            pet_name: forPet || null,
+            createdAt: new Date().toISOString()
+        }]);
+
+        await syncLiveDonations(before);
+
         // Trigger automated thank-you email
         if (window.PawFirebase) {
             await window.PawFirebase.sendAutomatedEmail({
@@ -184,7 +234,6 @@
         selected = fromUrl;
     }
 
-    const forPet = (new URLSearchParams(location.search).get("for") || "").trim().slice(0, 40);
     if (forPet) {
         const note = document.createElement("p");
         note.className = "donate-impact";
@@ -194,7 +243,7 @@
 
     showImpact(selected);
     applyGate();
-    render(0);
+    syncLiveDonations(0);
 </script>
 </body>
 </html>

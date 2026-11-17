@@ -206,6 +206,7 @@
         .modal-card {
             background: var(--surface); padding: 36px; border-radius: 28px;
             width: 100%; max-width: 520px; box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+            max-height: 92dvh; overflow-y: auto;
         }
         .modal-card h2 { margin: 0 0 24px; font-weight: 800; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -214,6 +215,11 @@
         .form-group input, .form-group select, .form-group textarea {
             width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line);
             background: var(--field); font: inherit; color: var(--ink); box-shadow: var(--clay-inset); font-size: 14px;
+        }
+        .form-group input[type="file"] {
+            border-style: dashed;
+            cursor: pointer;
+            padding: 10px 14px;
         }
         .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
         .menu-toggle { display: none; background: none; border: none; color: var(--ink); font-size: 24px; cursor: pointer; }
@@ -470,9 +476,13 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="petImg">Photo URL (Optional)</label>
-                    <input type="url" id="petImg" placeholder="https://... or leave blank for fallback">
+                    <label for="petPhotoFile">Upload Rescue Photo</label>
+                    <input type="file" id="petPhotoFile" accept="image/*">
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="petImg">Or Paste Photo URL (Optional)</label>
+                <input type="url" id="petImg" placeholder="https://... or leave blank if uploading a file">
             </div>
             <div class="form-group">
                 <label for="petDesc">Rescue Story & Temperament</label>
@@ -661,7 +671,10 @@
     }
 
     async function loadDashboardData() {
-        const raised = Number(localStorage.getItem("pawforwardRaised")) || 34000;
+        const { data: donationRows } = await supabase.from("donations").select("amount");
+        const raised = donationRows?.length
+            ? donationRows.reduce((sum, r) => sum + Number(r.amount || 0), 0)
+            : (Number(localStorage.getItem("pawforwardRaised")) || 34000);
         document.getElementById("statDonations").textContent = "₱" + raised.toLocaleString();
 
         // Load Cloud Animals
@@ -736,27 +749,49 @@
     // Email log: show 12 more at a time
     document.getElementById("logsMoreBtn").addEventListener("click", () => { logsShown += 12; renderLogs(); });
 
-    // Approve / Decline. Approve goes straight through; Decline asks for confirmation first.
-    // Real email sending is switched off in firebase-config.js (EMAIL_CONFIG.enabled), so until
-    // EmailJS is set up the "email" is only recorded in the Email Log. Say so instead of implying otherwise.
+    // Approve / Decline with real EmailJS status verification & tailored messaging
     async function setInquiryStatus(d, act, reason = "") {
-        const verdict = act === "Rejected" ? "declined" : "approved";
+        const isDeclined = act === "Rejected";
+        const verdict = isDeclined ? "declined" : "approved";
+
+        // 1. Update status in Supabase
         const { error } = await supabase.from("inquiries").update({ status: act }).eq("id", d.id);
         if (error) throw error;
-        const note = reason ? ` A note from our team: ${reason}` : "";
-        let emailOk = true;
+
+        // 2. Build tailored Subject & Message for Approval vs. Decline
+        const subject = isDeclined
+            ? `PawForward Application Update: ${d.pet} (Declined)`
+            : `PawForward: Your Application for ${d.pet} Was Approved!`;
+
+        const note = reason ? ` A note from our team: "${reason}"` : "";
+
+        const message = isDeclined
+            ? `Thank you so much for your interest in ${d.pet}. After careful review, our shelter team has declined this application at this time.${note} Please feel free to browse other rescues waiting for a home or reach out to us with any questions.`
+            : `Great news! Your application for ${d.pet} has been approved by our shelter team.${note} Our coordinator will reach out shortly with next steps, or you can log in to your PawForward account portal to view details.`;
+
+        // 3. Send real email via EmailJS & check the actual response
+        let emailSent = false;
         try {
-            await sendAutomatedEmail({
+            const res = await sendAutomatedEmail({
                 to_email: d.email,
                 to_name: d.name,
-                subject: `PawForward Application Update: ${d.pet} (${verdict})`,
-                message: `Hi ${d.name}, your adoption application for ${d.pet} has been reviewed and ${verdict} by our shelter team.${note} Log in to your PawForward account portal to view details.`
+                subject: subject,
+                message: message
             });
-        } catch (err) { emailOk = false; }
+            emailSent = Boolean(res && res.ok && !res.simulated);
+        } catch (err) {
+            emailSent = false;
+        }
+
         await loadDashboardData();
-        if (!emailOk) toast(`Application ${verdict}, but the notification could not be recorded.`, "warn");
-        else if (EMAIL_CONFIG.enabled) toast(`Application ${verdict}. The applicant has been emailed.`);
-        else toast(`Application ${verdict}. Notification saved to the Email Log (real email sending isn't set up yet).`, "warn");
+
+        if (emailSent) {
+            toast(`Application ${verdict}. Real email sent to ${d.email}!`);
+        } else if (EMAIL_CONFIG.enabled) {
+            toast(`Application ${verdict} and logged, but EmailJS failed to deliver the email.`, "warn");
+        } else {
+            toast(`Application ${verdict}. Notification saved to the Email Log.`, "warn");
+        }
     }
 
     let declineTarget = null;
@@ -848,7 +883,7 @@
     window.addEventListener("hashchange", showView);
     showView();
 
-    // Modal & Add Pet Form
+    // Modal & Add Pet Form (with Supabase Storage upload + compressed local image fallback)
     const modal = document.getElementById("animalModal");
     document.getElementById("openModalBtn").addEventListener("click", () => modal.classList.add("active"));
     document.getElementById("openModalBtn2").addEventListener("click", () => modal.classList.add("active"));
@@ -858,8 +893,41 @@
         e.preventDefault();
         const saveBtn = document.getElementById("savePetBtn");
         try {
-            saveBtn.textContent = "Saving to Cloud...";
+            saveBtn.textContent = "Uploading & Saving...";
             saveBtn.disabled = true;
+
+            let imageUrl = document.getElementById("petImg").value.trim();
+            const fileInput = document.getElementById("petPhotoFile");
+            const file = fileInput?.files?.[0];
+
+            // Upload file to Supabase Storage if a local photo was chosen, with compressed fallback
+            if (file) {
+                const ext = file.name.split(".").pop();
+                const filePath = `rescues/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+                const { error: uploadErr } = await supabase.storage
+                    .from("pet-photos")
+                    .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+                if (!uploadErr) {
+                    const { data: pub } = supabase.storage.from("pet-photos").getPublicUrl(filePath);
+                    imageUrl = pub.publicUrl;
+                } else {
+                    console.warn("Storage bucket upload failed, using compressed local image fallback:", uploadErr.message);
+                    imageUrl = await new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            const maxW = 700;
+                            const scale = Math.min(1, maxW / img.width);
+                            canvas.width = img.width * scale;
+                            canvas.height = img.height * scale;
+                            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+                            resolve(canvas.toDataURL("image/webp", 0.8));
+                        };
+                        img.src = URL.createObjectURL(file);
+                    });
+                }
+            }
 
             const { error } = await supabase.from("animals").insert([{
                 name: document.getElementById("petName").value.trim(),
@@ -867,7 +935,7 @@
                 sex: document.getElementById("petSex").value,
                 ageMonths: Number(document.getElementById("petAge").value) || 12,
                 status: document.getElementById("petStatus").value,
-                img: document.getElementById("petImg").value.trim(),
+                img: imageUrl || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80",
                 desc: document.getElementById("petDesc").value.trim() || "Rescued and ready for a loving home.",
                 arrivalDate: new Date().toISOString().slice(0, 10),
                 createdAt: new Date().toISOString()
@@ -877,6 +945,7 @@
 
             document.getElementById("addAnimalForm").reset();
             modal.classList.remove("active");
+            toast("Rescue pet added to cloud registry!");
             await loadDashboardData();
         } catch (error) {
             toast("Database error: " + error.message, "error");

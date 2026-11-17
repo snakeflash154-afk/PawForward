@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Shelter Shop & Merchandise</title>
+    <meta name="description" content="Shop PawForward pet essentials and shelter merch. 100% of proceeds fund food and veterinary care for rescued animals.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PawForward Animal Rescue">
+    <meta property="og:title" content="PawForward | Shelter Shop & Merchandise">
+    <meta property="og:description" content="Every purchase directly pays for food and vet care for rescued shelter animals.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -62,13 +69,58 @@
 <script src="Cart.js"></script>
 <script>
     const PRODUCTS = [
-        { id: "leash", name: "Dog leash",           cat: "pets",  price: 350, desc: "Strong, soft-grip nylon leash. 1.5 m.", fallback: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=700&q=80" },
-        { id: "bowl",  name: "Pet food bowl",       cat: "pets",  price: 220, desc: "Non-slip stainless steel bowl.", fallback: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=700&q=80" },
-        { id: "toy",   name: "Cat toy set",         cat: "pets",  price: 180, desc: "Five toys to keep curious cats busy.", fallback: "https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=700&q=80" },
-        { id: "tote",  name: "Rescue paw tote bag", cat: "merch", price: 480, desc: "Sturdy canvas tote with our paw print.", badge: "Best seller", fallback: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=700&q=80" },
-        { id: "tee",   name: "PawForward T-shirt",  cat: "merch", price: 650, desc: "Soft cotton tee. Wear your support.", badge: "New", fallback: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=700&q=80" },
-        { id: "mug",   name: "Ceramic mug",         cat: "merch", price: 320, desc: "For coffee with a good cause.", fallback: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=700&q=80" }
+        {
+            id: "leash",
+            name: "Dog leash",
+            cat: "pets",
+            price: 350,
+            desc: "Strong, soft-grip nylon leash. 1.5 m.",
+            fallback: "https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?auto=format&fit=crop&w=700&q=80"
+        },
+        {
+            id: "bowl",
+            name: "Pet food bowl",
+            cat: "pets",
+            price: 220,
+            desc: "Non-slip stainless steel bowl.",
+            fallback: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=700&q=80"
+        },
+        {
+            id: "toy",
+            name: "Cat toy set",
+            cat: "pets",
+            price: 180,
+            desc: "Five toys to keep curious cats busy.",
+            fallback: "https://images.unsplash.com/photo-1545249390-6bdfa286032f?auto=format&fit=crop&w=700&q=80"
+        },
+        {
+            id: "tote",
+            name: "Rescue paw tote bag",
+            cat: "merch",
+            price: 480,
+            desc: "Sturdy canvas tote with our paw print.",
+            badge: "Best seller",
+            fallback: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=700&q=80"
+        },
+        {
+            id: "tee",
+            name: "PawForward T-shirt",
+            cat: "merch",
+            price: 650,
+            desc: "Soft cotton tee. Wear your support.",
+            badge: "New",
+            fallback: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=700&q=80"
+        },
+        {
+            id: "mug",
+            name: "Ceramic mug",
+            cat: "merch",
+            price: 320,
+            desc: "For coffee with a good cause.",
+            fallback: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=700&q=80"
+        }
     ];
+
     const CAT_LABEL = { pets: "For pets", merch: "Merch" };
     const peso = (n) => "\u20B1" + n.toLocaleString("en-US");
     const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
@@ -92,27 +144,38 @@
                 '<div class="item-img"><img loading="lazy"><span class="tag"></span></div>' +
                 '<div class="item-body"><h3></h3><p class="desc"></p>' +
                 '<div class="buy-row"><span class="price"></span><button type="button" class="add-to-cart">' + PLUS + 'Add to cart</button></div></div>';
-            
+
             const img = card.querySelector("img");
-            // Try your own photo as .png, then .jpg, then the online fallback.
             const sources = ["images/shop-" + p.id + ".png", "images/shop-" + p.id + ".jpg", p.fallback];
             let tryIndex = 0;
             img.alt = p.name;
             img.onerror = function() {
                 tryIndex++;
-                if (tryIndex < sources.length) this.src = sources[tryIndex]; else this.onerror = null;
+                if (tryIndex < sources.length) this.src = sources[tryIndex];
+                else this.onerror = null;
             };
-            // The cart should use whichever picture actually loaded.
-            img.onload = function() { const b = card.querySelector(".add-to-cart"); if (b) b.dataset.img = this.getAttribute("src"); };
+            img.onload = function() {
+                const b = card.querySelector(".add-to-cart");
+                if (b) b.dataset.img = this.getAttribute("src");
+            };
             img.src = sources[0];
 
             card.querySelector(".tag").textContent = CAT_LABEL[p.cat];
-            if (p.badge) { const f = document.createElement("span"); f.className = "flag"; f.textContent = p.badge; card.querySelector(".item-img").appendChild(f); }
+            if (p.badge) {
+                const f = document.createElement("span");
+                f.className = "flag";
+                f.textContent = p.badge;
+                card.querySelector(".item-img").appendChild(f);
+            }
             card.querySelector("h3").textContent = p.name;
             card.querySelector(".desc").textContent = p.desc;
             card.querySelector(".price").textContent = peso(p.price);
+
             const btn = card.querySelector(".add-to-cart");
-            btn.dataset.id = p.id; btn.dataset.name = p.name; btn.dataset.price = p.price; btn.dataset.img = sources[0];
+            btn.dataset.id = p.id;
+            btn.dataset.name = p.name;
+            btn.dataset.price = p.price;
+            btn.dataset.img = sources[0];
             btn.setAttribute("aria-label", "Add " + p.name + " to cart");
             grid.appendChild(card);
         });
@@ -126,7 +189,10 @@
         state.filter = chip.dataset.filter;
         renderProducts();
     });
-    document.getElementById("sort").addEventListener("change", (e) => { state.sort = e.target.value; renderProducts(); });
+    document.getElementById("sort").addEventListener("change", (e) => {
+        state.sort = e.target.value;
+        renderProducts();
+    });
     renderProducts();
 </script>
 </body>

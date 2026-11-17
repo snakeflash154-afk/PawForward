@@ -1,12 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="description" content="PawForward Animal Rescue rescues stray dogs and cats, provides veterinary care, and connects them with loving forever families.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PawForward Animal Rescue">
+    <meta property="og:title" content="PawForward | Rescue, Rehabilitate & Rehome">
+    <meta property="og:description" content="Meet adoptable rescue pets, reserve volunteer shifts, or support life-saving veterinary care at PawForward.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawForward | Rescue, Rehabilitate, Rehome</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .hero {
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 35%;
+            z-index: 0;
+            filter: brightness(1.12) contrast(1.04);
+        }
+        .hero-video-scrim {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(95deg, rgba(18, 12, 11, 0.55) 0%, rgba(18, 12, 11, 0.25) 50%, rgba(18, 12, 11, 0.05) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+        }
+        .hero .scroll-cue {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Replaces any background image or pseudo-element on the "Defend strays every day" section */
+        [data-defend-bg]::before,
+        [data-defend-bg]::after {
+            background-image: none !important;
+            display: none !important;
+        }
+        [data-defend-bg] {
+            background:
+                linear-gradient(135deg, rgba(24, 16, 14, 0.48) 0%, rgba(24, 16, 14, 0.35) 100%),
+                url("https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1800&q=85") center 35% / cover no-repeat !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -15,7 +66,19 @@
 
 <main>
     <section class="hero">
-        <div class="hero-bg" role="img" aria-label="Rescued dogs at PawForward"></div>
+        <video
+            class="hero-bg-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            poster="https://images.pexels.com/videos/10495799/pexels-photo-10495799.jpeg?auto=compress&cs=tinysrgb&w=1600"
+            aria-label="Rescued dogs at PawForward"
+        >
+            <source src="images/hero-dog.mp4" type="video/mp4">
+            <source src="https://videos.pexels.com/video-files/10495799/10495799-hd_1920_1080_25fps.mp4" type="video/mp4">
+        </video>
+        <div class="hero-video-scrim"></div>
         <div class="hero-content">
             <h2>
                 <span class="line"><span>Give every</span></span>
@@ -33,7 +96,12 @@
 
     <section class="container story" id="story">
         <div class="story-img reveal">
-            <img src="images/intro-dogs.jpg" alt="Dogs resting together at the shelter" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=900&q=80'">
+            <img
+                src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=1000&q=85"
+                alt="Rescued dog and cat resting together in a warm, safe home"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1000&q=85'"
+            >
         </div>
         <div class="reveal">
             <h2>Every animal deserves a safe home</h2>
@@ -101,15 +169,69 @@
 <script src="script.js"></script>
 <script src="Cart.js"></script>
 
-<!-- Interactive Fostering & Volunteer Scripts Connected to Supabase (Bypassing Login Prompts if Logged In) -->
-<!-- Interactive Fostering & Volunteer Scripts Connected to Supabase -->
+<!-- Automatically detect and replace the "Defend strays every day" background once injected -->
+<script>
+    (function replaceDefendBackground() {
+        const cleanUrl = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1800&q=85";
+
+        function sweep() {
+            const heading = Array.from(document.querySelectorAll("h1, h2, h3")).find(
+                (el) => el.textContent.trim().toLowerCase().includes("defend strays every day")
+            );
+            if (!heading) return false;
+
+            let container = heading.parentElement;
+            while (container && container !== document.body) {
+                if (container.offsetWidth >= window.innerWidth * 0.8 && container.offsetHeight >= 350) {
+                    container.setAttribute("data-defend-bg", "true");
+                    container.querySelectorAll("img").forEach((img) => {
+                        if (img.offsetWidth >= window.innerWidth * 0.7) {
+                            img.src = cleanUrl;
+                        }
+                    });
+                    return true;
+                }
+                container = container.parentElement;
+            }
+            return false;
+        }
+
+        if (!sweep()) {
+            const observer = new MutationObserver(() => {
+                if (sweep()) observer.disconnect();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    })();
+</script>
+
+<!-- Interactive Volunteer Scripts Connected to Supabase -->
 <script type="module">
     import { supabase, sendAutomatedEmail } from "./firebase-config.js";
 
-    function getLoggedInUser() {
-        const userEmail = localStorage.getItem("paw_user_email") || sessionStorage.getItem("paw_user_email") || "supporter@pawforward.org";
-        const userName = localStorage.getItem("paw_user_name") || sessionStorage.getItem("paw_user_name") || "Supporter";
-        return { email: userEmail, name: userName };
+    async function getLoggedInUser() {
+        // 1. Check active Supabase Auth session first
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email) {
+            const saved = JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+            const meta = session.user.user_metadata || {};
+            const fallbackName = session.user.email.split("@")[0];
+            const fullName = [meta.firstName, meta.lastName].filter(Boolean).join(" ")
+                || saved?.firstName
+                || localStorage.getItem("paw_user_name")
+                || (fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1));
+            return { email: session.user.email, name: fullName };
+        }
+
+        // 2. Fallback to stored session object
+        try {
+            const saved = JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+            if (saved?.email) {
+                return { email: saved.email, name: saved.firstName || saved.name || "Supporter" };
+            }
+        } catch (e) {}
+
+        return null;
     }
 
     // Intercept and clear any rogue login/auth prompts on all donation & action buttons
@@ -118,63 +240,31 @@
         if (!target) return;
 
         const text = target.textContent.toLowerCase();
-        if (text.includes("donate") && !text.includes("foster")) {
-            // Let the native cart/donation checkout handle it smoothly without blocking prompts
+        if (text.includes("donate")) {
             console.log("Donation button clicked - bypassing authentication wall.");
         }
     }, true);
 
-    // 1. Virtual Fostering Tiers Integration
-    document.querySelectorAll(".foster-tier-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-            e.preventDefault();
-            const tierName = btn.dataset.tier || "Virtual Fostering Program";
-            
-            let user = getLoggedInUser();
-            const userEmail = user.email;
-            const userName = user.name;
-
-            try {
-                const { error } = await supabase.from("inquiries").insert([{
-                    name: userName,
-                    email: userEmail,
-                    topic: "Virtual Fostering",
-                    pet: tierName,
-                    message: `Virtual fostering tier selected: ${tierName}`,
-                    status: "Approved",
-                    createdAt: new Date().toISOString()
-                }]);
-
-                if (error) throw error;
-
-                await sendAutomatedEmail({
-                    to_email: userEmail,
-                    to_name: userName,
-                    subject: `PawForward: Thank you for Virtual Fostering (${tierName})!`,
-                    message: `Hi ${userName}, thank you so much for supporting our rescues through virtual fostering (${tierName}). Your sponsorship is logged and active!`
-                });
-
-                alert("Virtual fostering tier successfully registered and confirmation email logged!");
-            } catch (err) {
-                alert("Error processing fostering: " + err.message);
-            }
-        });
-    });
-
-    // 2. Volunteer Shifts Integration
-    document.querySelectorAll(".volunteer-shift-btn").forEach(btn => {
+    // Volunteer Shifts Integration
+    document.querySelectorAll(".volunteer-shift-btn").forEach((btn) => {
         btn.addEventListener("click", async (e) => {
             e.preventDefault();
             const shiftName = btn.dataset.shift || "Weekend Shelter Volunteer Shift";
-            
-            let user = getLoggedInUser();
-            const userEmail = user.email;
-            const userName = user.name;
+
+            const user = await getLoggedInUser();
+            if (!user) {
+                if (typeof openAuth === "function") {
+                    openAuth("Please sign in to reserve a volunteer shift.");
+                } else {
+                    alert("Please sign in first so we can send your volunteer confirmation.");
+                }
+                return;
+            }
 
             try {
                 const { error } = await supabase.from("inquiries").insert([{
-                    name: userName,
-                    email: userEmail,
+                    name: user.name,
+                    email: user.email,
                     topic: "Volunteering",
                     pet: "General Shelter",
                     message: `Reserved volunteer shift: ${shiftName}`,
@@ -185,16 +275,22 @@
                 if (error) throw error;
 
                 await sendAutomatedEmail({
-                    to_email: userEmail,
-                    to_name: userName,
+                    to_email: user.email,
+                    to_name: user.name,
                     subject: `PawForward: Volunteer Shift Reserved (${shiftName})`,
-                    message: `Hi ${userName}, your volunteer slot for ${shiftName} has been confirmed. Thank you for helping our shelter!`
+                    message: `Hi ${user.name}, your volunteer slot for ${shiftName} has been confirmed. Thank you for helping our shelter!`
                 });
 
-                alert("Volunteer shift successfully reserved!");
+                if (typeof toast === "function") {
+                    toast(`Volunteer shift reserved! Confirmation sent to ${user.email}.`);
+                } else {
+                    alert(`Volunteer shift successfully reserved! Confirmation sent to ${user.email}.`);
+                }
             } catch (err) {
                 alert("Error reserving shift: " + err.message);
             }
         });
     });
 </script>
+</body>
+</html>

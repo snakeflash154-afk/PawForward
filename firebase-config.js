@@ -32,10 +32,10 @@ export async function verifyAdminAccess(user) {
 }
 
 export const EMAIL_CONFIG = {
-    enabled: false,
-    serviceId: "YOUR_EMAILJS_SERVICE_ID",
-    templateId: "YOUR_EMAILJS_TEMPLATE_ID",
-    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
+    enabled: true,
+    serviceId: "service_jbo9qcq",
+    templateId: "template_q3odvgd",
+    publicKey: "Q7-HLWGyVhOQgn9_6",
     adminInbox: "hello@pawforward.org"
 };
 
@@ -51,7 +51,7 @@ export async function sendAutomatedEmail({ to_email, to_name, subject, message, 
         }]);
     } catch (e) {}
 
-    if (!EMAIL_CONFIG.enabled || EMAIL_CONFIG.publicKey === "YOUR_EMAILJS_PUBLIC_KEY") {
+    if (!EMAIL_CONFIG.enabled || !EMAIL_CONFIG.publicKey) {
         return { ok: true, simulated: true };
     }
 
@@ -90,9 +90,8 @@ window.PawFirebase = {
             password: password
         });
         if (error) {
-            alert("Login Failed: " + error.message);
             const verifyBtn = document.querySelector('button[type="submit"]');
-            if (verifyBtn) verifyBtn.textContent = "Sign In";
+            if (verifyBtn) verifyBtn.textContent = "Sign in";
             throw error;
         }
         const user = { ...data.user, uid: data.user.id };
@@ -107,9 +106,8 @@ window.PawFirebase = {
             password: password
         });
         if (error) {
-            alert("Registration Failed: " + error.message);
             const verifyBtn = document.querySelector('button[type="submit"]');
-            if (verifyBtn) verifyBtn.textContent = "Create Account";
+            if (verifyBtn) verifyBtn.textContent = "Create account";
             throw error;
         }
         const user = { ...data.user, uid: data.user.id };
@@ -207,9 +205,6 @@ window.PawFirebase = {
     }
 };
 
-// NOTE: keep this callback synchronous. Awaiting other Supabase calls (like
-// verifyAdminAccess -> supabase.from(...)) inside onAuthStateChange can deadlock
-// supabase-js, which leaves the user half signed-in. Slow work is deferred below.
 supabase.auth.onAuthStateChange((event, session) => {
     const fbUser = session?.user;
     if (fbUser) {
@@ -224,7 +219,6 @@ supabase.auth.onAuthStateChange((event, session) => {
         }));
         window.dispatchEvent(new Event("authchange"));
 
-        // Work out the real admin role afterwards, outside the auth callback.
         setTimeout(async () => {
             const isAdmin = await verifyAdminAccess(fbUser);
             const role = isAdmin ? "admin" : "user";
@@ -237,10 +231,6 @@ supabase.auth.onAuthStateChange((event, session) => {
             }
         }, 0);
     } else {
-        // Only clear the stored login when Supabase says the user really signed out,
-        // or when the stored login came from Supabase (it has a uid). A code-based
-        // login is local-only (no uid) and must survive the empty INITIAL_SESSION
-        // event that fires on every page load.
         const stored = JSON.parse(localStorage.getItem("pawforwardSession") || "null");
         if (event === "SIGNED_OUT" || (stored && stored.uid)) {
             localStorage.removeItem("paw_user_role");

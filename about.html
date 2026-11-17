@@ -7,6 +7,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .donate-section {
+            background:
+                linear-gradient(135deg, rgba(22, 15, 13, 0.50) 0%, rgba(22, 15, 13, 0.36) 100%),
+                url("https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=1800&q=85") center 35% / cover no-repeat !important;
+        }
+        .donate-section::before,
+        .donate-section::after {
+            background-image: none !important;
+            display: none !important;
+        }
+        .donate-section .donate-box {
+            background: rgba(255, 251, 248, 0.90);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 24px 60px rgba(18, 12, 10, 0.28);
+        }
+    </style>
 </head>
 <body>
 
@@ -76,5 +95,51 @@
 <script src="Core.js"></script>
 <script src="script.js"></script>
 <script src="Cart.js"></script>
+
+<script type="module">
+    import { supabase } from "./firebase-config.js";
+
+    const goal = (typeof Fund !== "undefined" && Fund.goal) ? Fund.goal : 50000;
+    const fill = document.getElementById("progressFill");
+    const text = document.getElementById("progressText");
+    const donateNowBtn = document.getElementById("donateNow");
+    const customInput = document.getElementById("customAmount");
+    let chosenAmount = 250;
+
+    function updateDonateLink(amt) {
+        chosenAmount = amt > 0 ? amt : 250;
+        if (donateNowBtn) {
+            donateNowBtn.href = `donate.html?amount=${encodeURIComponent(chosenAmount)}`;
+        }
+    }
+
+    document.querySelectorAll("#amounts .amount-btn").forEach((btn) => {
+        btn.addEventListener("click", () => updateDonateLink(Number(btn.dataset.amount)));
+    });
+    if (customInput) {
+        customInput.addEventListener("input", () => updateDonateLink(Number(customInput.value)));
+    }
+    updateDonateLink(chosenAmount);
+
+    async function syncAboutProgress() {
+        try {
+            const { data, error } = await supabase.from("donations").select("amount");
+            if (error || !data) return;
+            const raised = data.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+            const pct = Math.min(100, Math.round((raised / goal) * 100));
+            if (fill) {
+                fill.dataset.percent = String(pct);
+                fill.style.width = pct + "%";
+            }
+            if (text) {
+                text.textContent = `${pct}% of this month's goal reached (₱${raised.toLocaleString()} / ₱${goal.toLocaleString()})`;
+            }
+        } catch (err) {
+            console.warn("Could not sync live donations on about.html:", err);
+        }
+    }
+
+    syncAboutProgress();
+</script>
 </body>
 </html>

@@ -1,7 +1,4 @@
 /* script.js - Site-wide behavior. Needs Layout.js (top of <body>) and Core.js loaded first. */
-// (Removed) requireAuth() was being overridden to always return true, which let
-// signed-out visitors "save" pets / claim shifts with nothing stored.
-
 
 if (typeof Auth !== 'undefined') {
     const originalAuthCurrent = Auth.current;
@@ -214,6 +211,7 @@ if (signInBtn) {
         if ((typeof Auth !== 'undefined' && Auth.current()) || localStorage.getItem("paw_user_email")) {
             e.preventDefault();
             if (typeof Auth !== 'undefined') Auth.signOut();
+            if (window.PawFirebase && window.PawFirebase.logout) window.PawFirebase.logout();
             localStorage.removeItem("paw_user_email");
             localStorage.removeItem("paw_user_name");
             localStorage.removeItem("paw_user_role");
@@ -243,12 +241,12 @@ wireForm(byId("signInForm"), {
 
         if (window.PawFirebase) {
             const { isAdmin } = await window.PawFirebase.login(emailVal, passVal);
-            // Only remember the user once the login has actually succeeded.
             localStorage.setItem("paw_user_email", emailVal);
             localStorage.setItem("paw_user_name", emailVal.split('@')[0]);
             if (isAdmin) localStorage.setItem("paw_user_role", "admin");
             closeAuth();
             refreshAuth();
+            syncUserInquiriesToAccount();
             
             if (isAdmin) {
                 toast("Creator/Admin verified! Entering Command Center...", {
@@ -336,10 +334,6 @@ window.addEventListener("authchange", () => {
         const go = pendingDonateTo; pendingDonateTo = null; setTimeout(go, 600);
     }
 });
-
-// (Removed) A click handler used to silently sign everyone in as
-// "supporter@pawforward.org" when they clicked anything containing "donate".
-// Guests now donate through the "Donate as guest" option on donate.html.
 
 /* ================== Header: solid on scroll, progress line ================== */
 const mainNav = byId("mainNav");
@@ -432,7 +426,7 @@ if (donateNow) {
     showImpact(250);
 }
 
-/* ======== Home teaser + Adopt page (Merges Local + Live Firestore Animals) ======== */
+/* ======== Home teaser + Adopt page (Merges Local + Live Cloud Animals) ======== */
 const teaserGrid = byId("teaserGrid");
 if (teaserGrid) sortAnimals(ANIMALS).slice(0, 3).forEach((a, i) => teaserGrid.appendChild(animalCard(a, i)));
 
@@ -515,19 +509,39 @@ async function syncCloudAnimalsToCatalog() {
 }
 syncCloudAnimalsToCatalog();
 
-/* ============ Contact & Adoption Application Form (Synced to Firestore) ============ */
+/* ============ Contact & Adoption Application Form (Pre-fill + Cloud Sync) ============ */
 const contactForm = byId("contactForm");
 if (contactForm) {
-    const pet = new URLSearchParams(location.search).get("pet");
+    const params = new URLSearchParams(location.search);
+    const pet = params.get("pet");
+    const topicParam = params.get("topic");
+
     if (pet) {
-        byId("cTopic").value = "Adopting a pet";
-        byId("cMessage").value = "Hi PawForward! I would love to apply to adopt " + pet + " and schedule a shelter visit.";
+        if (byId("cTopic")) byId("cTopic").value = "Adopting a pet";
+        if (byId("cMessage")) {
+            byId("cMessage").value = `Hi PawForward! I would love to apply to adopt ${pet} and schedule a shelter visit.`;
+        }
+        // Show a clear visual banner above the form confirming which pet is selected
+        if (!byId("selectedPetBanner")) {
+            const banner = document.createElement("div");
+            banner.id = "selectedPetBanner";
+            banner.style.cssText = "padding:12px 16px;margin-bottom:16px;border-radius:12px;background:rgba(182,55,55,0.08);border:1px solid rgba(182,55,55,0.22);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:12px;";
+            banner.innerHTML = `<span>🐾 Applying to adopt: <strong style="color:var(--red,#b63737)">${pet.replace(/[<>&"']/g, "")}</strong></span><a href="adopt.html" style="font-size:12px;color:var(--red,#b63737);text-decoration:underline;">Change pet</a>`;
+            contactForm.insertBefore(banner, contactForm.firstChild);
+        }
+    } else if (topicParam && byId("cTopic")) {
+        byId("cTopic").value = topicParam;
     }
-    const currUser = Auth.current();
-    if (currUser) {
-        if (byId("cName") && !byId("cName").value) byId("cName").value = currUser.firstName || "";
-        if (byId("cEmail") && !byId("cEmail").value) byId("cEmail").value = currUser.email || "";
-    }
+
+    const fillUserContactFields = () => {
+        const currUser = (typeof Auth !== "undefined" && Auth.current()) || JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+        const email = currUser?.email || localStorage.getItem("paw_user_email") || "";
+        const name = currUser?.firstName || localStorage.getItem("paw_user_name") || (email ? email.split("@")[0] : "");
+        if (byId("cName") && !byId("cName").value && name) byId("cName").value = name;
+        if (byId("cEmail") && !byId("cEmail").value && email) byId("cEmail").value = email;
+    };
+    fillUserContactFields();
+    window.addEventListener("authchange", fillUserContactFields);
 
     wireForm(contactForm, {
         cName:    { check: need("Name"), ok: "Looks good" },
@@ -536,11 +550,11 @@ if (contactForm) {
     }, async () => {
         const name = byId("cName").value.trim();
         const email = byId("cEmail").value.trim();
-        const topic = byId("cTopic").value;
+        const topic = byId("cTopic") ? byId("cTopic").value : "Adopting a pet";
         const message = byId("cMessage").value.trim();
         const msgEl = byId("formThanks");
 
-        if (Auth.current()) {
+        if (typeof Auth !== "undefined" && Auth.current() && typeof UserData !== "undefined") {
             UserData.addInquiry({ topic, pet: pet || "", message });
         }
 
@@ -552,13 +566,97 @@ if (contactForm) {
             }
         }
 
-        msgEl.textContent = "Thanks, " + name + "! Your application/inquiry has been logged in our shelter database and emailed to our team.";
-        msgEl.classList.add("show");
-        toast("Application submitted to PawForward!");
+        if (msgEl) {
+            msgEl.textContent = "Thanks, " + name + "! Your application/inquiry has been logged in our shelter database and emailed to our team.";
+            msgEl.classList.add("show");
+        }
+        toast("Application submitted! Track its live status in your Account portal.", {
+            action: { label: "View Status", onClick: () => { location.href = "account.html"; } }
+        });
         contactForm.reset();
         clearFieldStates(contactForm);
+        fillUserContactFields();
     });
 }
+
+/* ============ Live Adopter Status Tracker (Account Portal Cloud Sync) ============ */
+function formatStatusBadge(status) {
+    const st = status || "Pending Review";
+    if (st === "Approved") {
+        return { label: "Approved", bg: "#e6fcf5", color: "#087f5b" };
+    }
+    if (st === "Rejected" || st === "Declined") {
+        return { label: "Declined", bg: "#ffe3e3", color: "#c92a2a" };
+    }
+    return { label: "Pending Review", bg: "#fff8e6", color: "#b45d00" };
+}
+
+function renderCloudInquiriesTracker(inquiries) {
+    const container = byId("inquiriesList") || byId("userInquiriesList") || qs("[data-inquiries-list]");
+    if (!container) return;
+
+    if (!inquiries || inquiries.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:14px;">No adoption applications or inquiries submitted yet. <a href="adopt.html" style="color:var(--red);font-weight:700;">Browse pets to adopt</a>.</p>';
+        return;
+    }
+
+    container.innerHTML = inquiries.map((item) => {
+        const badge = formatStatusBadge(item.status);
+        const dateStr = item.date ? new Date(item.date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" }) : "Recent";
+        const title = item.pet && item.pet !== item.topic ? `${item.pet} (${item.topic})` : (item.topic || "Shelter Inquiry");
+        const safeTitle = String(title).replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]));
+        const safeMsg = String(item.message || "").replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        return `
+            <div class="inquiry-track-card" style="padding:16px 18px;border-radius:16px;border:1px solid rgba(182,55,55,0.14);background:var(--surface,#fff);margin-bottom:12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="flex:1;min-width:220px;">
+                    <div style="font-weight:800;font-size:15px;margin-bottom:4px;">${safeTitle}</div>
+                    <div style="font-size:13px;color:var(--muted);line-height:1.45;">${safeMsg}</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:6px;">Submitted ${dateStr}</div>
+                </div>
+                <span style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;background:${badge.bg};color:${badge.color};white-space:nowrap;">
+                    ${badge.label}
+                </span>
+            </div>
+        `;
+    }).join("");
+}
+
+async function syncUserInquiriesToAccount() {
+    let attempts = 0;
+    while (!window.PawFirebase && attempts < 25) {
+        await new Promise((r) => setTimeout(r, 150));
+        attempts++;
+    }
+    if (!window.PawFirebase || !window.PawFirebase.fetchUserInquiriesFromCloud) return;
+
+    const currUser = (typeof Auth !== "undefined" && Auth.current()) || JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+    const email = currUser?.email || localStorage.getItem("paw_user_email");
+    if (!email) return;
+
+    try {
+        const cloudInquiries = await window.PawFirebase.fetchUserInquiriesFromCloud(email);
+        window.PawCloudInquiries = cloudInquiries;
+
+        // Also update UserData cache if Core.js exposes it
+        if (typeof UserData !== "undefined" && typeof Auth !== "undefined" && Auth.current()) {
+            try {
+                const key = "pawforwardUserData_" + email.toLowerCase();
+                const existing = JSON.parse(localStorage.getItem(key) || "{}");
+                existing.inquiries = cloudInquiries;
+                localStorage.setItem(key, JSON.stringify(existing));
+            } catch (e) {}
+        }
+
+        renderCloudInquiriesTracker(cloudInquiries);
+        window.dispatchEvent(new CustomEvent("cloudinquiriesloaded", { detail: cloudInquiries }));
+    } catch (err) {
+        console.warn("Could not sync live inquiries for user:", err);
+    }
+}
+
+syncUserInquiriesToAccount();
+window.addEventListener("authchange", syncUserInquiriesToAccount);
 
 /* ===================== Payment picker (donate + checkout) ===================== */
 let payCount = 0;
@@ -740,13 +838,37 @@ window.resetQuiz = function() {
     byId('quizLoader').style.transition = 'none';
 };
 
-window.claimShift = function(buttonElement) {
+window.claimShift = async function(buttonElement) {
     if (!requireAuth("Please sign in to claim a volunteer shift.")) return;
+    const shiftName = buttonElement.dataset.shift || "Shelter Volunteer Shift";
     buttonElement.classList.remove('open');
     buttonElement.classList.add('full');
     buttonElement.disabled = true;
     buttonElement.textContent = "✓ Claimed";
     buttonElement.style.background = "var(--red)";
     buttonElement.style.color = "white";
+
+    const currUser = (typeof Auth !== "undefined" && Auth.current()) || JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+    const email = currUser?.email || localStorage.getItem("paw_user_email");
+    const name = currUser?.firstName || localStorage.getItem("paw_user_name") || "Supporter";
+
+    if (window.PawFirebase && email) {
+        try {
+            await window.PawFirebase.submitInquiryToCloud({
+                name,
+                email,
+                topic: "Volunteering",
+                pet: "General Shelter",
+                message: `Reserved volunteer shift: ${shiftName}`
+            });
+            await window.PawFirebase.sendAutomatedEmail({
+                to_email: email,
+                to_name: name,
+                subject: `PawForward: Volunteer Shift Reserved (${shiftName})`,
+                message: `Hi ${name}, your volunteer slot for ${shiftName} has been confirmed. Thank you for helping our shelter!`
+            });
+        } catch (e) {}
+    }
+
     toast("Volunteer shift claimed! Confirmation logged to your account.");
 };

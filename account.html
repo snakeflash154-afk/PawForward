@@ -41,7 +41,9 @@
 
         <div class="panel" id="panel-donations" role="tabpanel" aria-labelledby="tab-donations"></div>
         <div class="panel" id="panel-saved" role="tabpanel" aria-labelledby="tab-saved" hidden></div>
-        <div class="panel" id="panel-inquiries" role="tabpanel" aria-labelledby="tab-inquiries" hidden></div>
+        <div class="panel" id="panel-inquiries" role="tabpanel" aria-labelledby="tab-inquiries" hidden>
+            <div id="inquiriesList"></div>
+        </div>
 
         <div class="panel" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
             <div class="profile-grid">
@@ -74,5 +76,79 @@
 <script src="script.js"></script>
 <script src="Cart.js"></script>
 <script src="account.js"></script>
+
+<script type="module">
+    import { supabase } from "./firebase-config.js";
+
+    const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+    function badgeStyle(status) {
+        const st = status || "Pending Review";
+        if (st === "Approved") return { label: "Approved", bg: "#e6fcf5", color: "#087f5b" };
+        if (st === "Rejected" || st === "Declined") return { label: "Declined", bg: "#ffe3e3", color: "#c92a2a" };
+        return { label: "Pending Review", bg: "#fff8e6", color: "#b45d00" };
+    }
+
+    function paintLiveInquiries(list) {
+        const panel = document.getElementById("panel-inquiries");
+        const statEl = document.getElementById("statInquiries");
+        if (statEl) statEl.textContent = String(list.length);
+        if (!panel) return;
+
+        if (!list.length) {
+            panel.innerHTML = `
+                <div class="clay-card" style="padding:28px;text-align:center;">
+                    <p style="color:var(--muted);margin:0 0 14px;">You haven't submitted any adoption applications or inquiries yet.</p>
+                    <a href="adopt.html" class="btn">Browse Rescue Animals</a>
+                </div>`;
+            return;
+        }
+
+        panel.innerHTML = list.map((item) => {
+            const b = badgeStyle(item.status);
+            const rawDate = item.createdAt || item.date;
+            const dateStr = rawDate ? new Date(rawDate).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" }) : "Recent";
+            const heading = item.pet && item.pet !== item.topic ? `${item.pet} · ${item.topic}` : (item.topic || "Shelter Inquiry");
+
+            return `
+                <div class="clay-card" style="padding:20px 24px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;">
+                    <div style="flex:1;min-width:230px;">
+                        <div style="font-weight:800;font-size:16px;margin-bottom:4px;">${esc(heading)}</div>
+                        <p style="margin:0 0 8px;font-size:14px;color:var(--muted);line-height:1.5;">${esc(item.message)}</p>
+                        <span style="font-size:12px;font-weight:600;color:var(--muted);">Submitted ${esc(dateStr)}</span>
+                    </div>
+                    <span style="padding:6px 14px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;background:${b.bg};color:${b.color};white-space:nowrap;">
+                        ${esc(b.label)}
+                    </span>
+                </div>`;
+        }).join("");
+    }
+
+    async function loadLiveAdopterStatus() {
+        const { data: { session } } = await supabase.auth.getSession();
+        const saved = JSON.parse(localStorage.getItem("pawforwardSession") || "null");
+        const email = session?.user?.email || saved?.email || localStorage.getItem("paw_user_email");
+        if (!email) return;
+
+        const { data, error } = await supabase
+            .from("inquiries")
+            .select("*")
+            .ilike("email", email.trim())
+            .order("createdAt", { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+            paintLiveInquiries(data);
+        }
+    }
+
+    // Re-render after account.js initializes and whenever tab or hash changes
+    setTimeout(loadLiveAdopterStatus, 150);
+    document.getElementById("tab-inquiries")?.addEventListener("click", loadLiveAdopterStatus);
+    window.addEventListener("authchange", loadLiveAdopterStatus);
+
+    if (location.hash === "#inquiries") {
+        setTimeout(() => document.getElementById("tab-inquiries")?.click(), 120);
+    }
+</script>
 </body>
 </html>
